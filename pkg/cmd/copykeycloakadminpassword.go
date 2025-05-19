@@ -31,26 +31,30 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 	if namespace == "" {
 		cli, err := github.NewGitHubCLI("")
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		repo, err := cli.GetCurrentRepository()
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		fmt.Printf("Repo: %s", repo)
 		fmt.Println()
 
 		prNumber, err := cli.GetCurrentPullRequest()
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		fmt.Printf("Pull request: %d", prNumber)
 		fmt.Println()
 
 		namespace, err = github.DeriveK8sNamespace(repo, prNumber)
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		fmt.Printf("Derived namespace: %s", namespace)
 		fmt.Println()
