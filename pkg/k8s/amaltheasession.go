@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -88,7 +89,7 @@ func ForciblyDeleteAmaltheaSessions(ctx context.Context, client *dynamic.Dynamic
 	for _, server := range servers {
 		err = ForciblyDeleteAmaltheaSession(ctx, client, namespace, server, gvr)
 		if err != nil {
-			return err
+			fmt.Printf("Ignoring error: %w\n", err)
 		}
 	}
 

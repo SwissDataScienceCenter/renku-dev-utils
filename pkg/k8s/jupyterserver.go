@@ -75,7 +75,7 @@ func ForciblyDeleteJupyterServer(ctx context.Context, client *dynamic.DynamicCli
 	propagation := metav1.DeletePropagationForeground
 	err = client.Resource(*gvr).Namespace(namespace).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &propagation})
 	if err != nil {
-		fmt.Printf("Ignoring error: %w\n", err)
+		return err
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func ForciblyDeleteJupyterServers(ctx context.Context, client *dynamic.DynamicCl
 	for _, server := range servers {
 		err = ForciblyDeleteJupyterServer(ctx, client, namespace, server, gvr)
 		if err != nil {
-			return err
+			fmt.Printf("Ignoring error: %w\n", err)
 		}
 	}
 
