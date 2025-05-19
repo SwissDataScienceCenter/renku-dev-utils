@@ -9,6 +9,7 @@ DIRTY :=
 else
 DIRTY := "dev"
 endif
+LDFLAGS=--ldflags "-s -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.Version=$(VERSION) -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.VersionSuffix=$(DIRTY)"
 
 .PHONY: all
 all: help
@@ -20,6 +21,10 @@ vars:  ## Show the Makefile vars
 	@echo GIT_COMMIT_HASH="'$(GIT_COMMIT_HASH)'"
 	@echo VERSION="'$(VERSION)'"
 	@echo DIRTY="'$(DIRTY)'"
+
+.PHONY: build/renku-dev-utils
+build/renku-dev-utils:
+	go build -v -o build/ $(LDFLAGS)
 
 # From the operator sdk Makefile
 # The help target prints out all targets with their descriptions organized
