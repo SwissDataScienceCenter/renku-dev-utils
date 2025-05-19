@@ -4,6 +4,11 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 # Current git commit hash
 GIT_COMMIT_HASH := $(shell git show --no-patch --no-notes --pretty='%h' HEAD)
 VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
+ifeq ($(shell git status --porcelain),)
+DIRTY :=
+else
+DIRTY := "dev"
+endif
 
 .PHONY: all
 all: help
@@ -14,6 +19,7 @@ vars:  ## Show the Makefile vars
 	@echo BRANCH="'$(BRANCH)'"
 	@echo GIT_COMMIT_HASH="'$(GIT_COMMIT_HASH)'"
 	@echo VERSION="'$(VERSION)'"
+	@echo DIRTY="'$(DIRTY)'"
 
 # From the operator sdk Makefile
 # The help target prints out all targets with their descriptions organized

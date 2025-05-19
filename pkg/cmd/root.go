@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,4 +22,12 @@ func runRoot(cmd *cobra.Command, args []string) error {
 
 func init() {
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
+	rootCmd.AddCommand(versionCmd)
+}
+
+func Main() {
+	if err := Execute(); err != nil {
+		os.Exit(2)
+	}
+	os.Exit(0)
 }
