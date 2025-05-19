@@ -8,16 +8,17 @@ import (
 )
 
 type DeleteAllSessionsOptions struct {
-	JupyterServerGvr *schema.GroupVersionResource
+	AmaltheaSessionGvr *schema.GroupVersionResource
+	JupyterServerGvr   *schema.GroupVersionResource
 }
 
 func DeleteAllSessions(ctx context.Context, client *dynamic.DynamicClient, namespace string, opts DeleteAllSessionsOptions) error {
-	err := DeleteJupyterServers(ctx, client, namespace, opts.JupyterServerGvr)
+	err := DeleteAmaltheaSessions(ctx, client, namespace, opts.AmaltheaSessionGvr)
 	if err != nil {
 		return err
 	}
 
-	err = DeleteAmaltheaSessions(ctx, client, namespace, opts.JupyterServerGvr)
+	err = DeleteJupyterServers(ctx, client, namespace, opts.JupyterServerGvr)
 	if err != nil {
 		return err
 	}
@@ -26,12 +27,12 @@ func DeleteAllSessions(ctx context.Context, client *dynamic.DynamicClient, names
 }
 
 func ForciblyDeleteAllSessions(ctx context.Context, client *dynamic.DynamicClient, namespace string, opts DeleteAllSessionsOptions) error {
-	err := ForciblyDeleteJupyterServers(ctx, client, namespace, opts.JupyterServerGvr)
+	err := ForciblyDeleteAmaltheaSessions(ctx, client, namespace, opts.AmaltheaSessionGvr)
 	if err != nil {
 		return err
 	}
 
-	err = ForciblyDeleteAmaltheaSessions(ctx, client, namespace, opts.JupyterServerGvr)
+	err = ForciblyDeleteJupyterServers(ctx, client, namespace, opts.JupyterServerGvr)
 	if err != nil {
 		return err
 	}

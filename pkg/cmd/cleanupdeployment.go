@@ -108,7 +108,7 @@ func cleanupDeployment(cmd *cobra.Command, args []string) {
 
 	// 5. Forcibly delete all sessions
 	fmt.Println("5. Forcibly delete all sessions")
-	err = k8s.DeleteAllSessions(ctx, client, namespace, k8s.DeleteAllSessionsOptions{})
+	err = k8s.ForciblyDeleteAllSessions(ctx, client, namespace, k8s.DeleteAllSessionsOptions{})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -74,7 +75,7 @@ func ForciblyDeleteJupyterServer(ctx context.Context, client *dynamic.DynamicCli
 	propagation := metav1.DeletePropagationForeground
 	err = client.Resource(*gvr).Namespace(namespace).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &propagation})
 	if err != nil {
-		return err
+		fmt.Printf("Ignoring error: %w\n", err)
 	}
 	return nil
 }
