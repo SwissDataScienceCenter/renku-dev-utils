@@ -23,7 +23,7 @@ vars:  ## Show the Makefile vars
 	@echo DIRTY="'$(DIRTY)'"
 
 .PHONY: rdu
-rdu: build/renku-dev-utils
+rdu: build/renku-dev-utils  ## Build and install renku-dev-utils
 	mkdir -p `go env GOPATH`/bin/
 	cp -av build/renku-dev-utils`go env GOEXE` `go env GOPATH`/bin/rdu`go env GOEXE`.new
 	mv -v `go env GOPATH`/bin/rdu`go env GOEXE`.new `go env GOPATH`/bin/rdu`go env GOEXE`
@@ -47,3 +47,8 @@ build/renku-dev-utils:
 help:  ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+##@ Development
+
+.PHONY: format
+format:  ## Format source files
+	gofmt -l -w .

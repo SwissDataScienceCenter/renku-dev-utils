@@ -8,7 +8,7 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
 	"github.com/spf13/cobra"
 	"golang.design/x/clipboard"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Flags
