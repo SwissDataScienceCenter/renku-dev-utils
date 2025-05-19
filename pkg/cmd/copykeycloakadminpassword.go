@@ -7,16 +7,11 @@ import (
 
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
+	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
 	"golang.design/x/clipboard"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// Flags
-
-var namespace string
-var secretName string
-var secretKey string
 
 var copyKeycloakAdminPasswordCmd = &cobra.Command{
 	Use:     "copy-keycloak-admin-password",
@@ -34,30 +29,11 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
-		repo, err := cli.GetCurrentRepository()
+		namespace, err = ns.FindCurrentNamespace(cli)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Printf("Repo: %s", repo)
-		fmt.Println()
-
-		prNumber, err := cli.GetCurrentPullRequest()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		fmt.Printf("Pull request: %d", prNumber)
-		fmt.Println()
-
-		namespace, err = github.DeriveK8sNamespace(repo, prNumber)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		fmt.Printf("Derived namespace: %s", namespace)
-		fmt.Println()
 	}
 
 	clients, err := k8s.GetClientset()
