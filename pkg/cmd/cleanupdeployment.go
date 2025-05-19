@@ -50,7 +50,7 @@ func cleanupDeployment(cmd *cobra.Command, args []string) {
 	}
 
 	// Ask for confirmation
-	fmt.Println("This command will perform the following actions:")
+	fmt.Printf("This command will perform the following actions in the namespace '%s':\n", namespace)
 	fmt.Println("  1. Delete all sessions")
 	fmt.Println("  2. Uninstall all helm releases")
 	fmt.Println("  3. Delete all jobs")

@@ -16,9 +16,13 @@ func DeleteAllSessions(ctx context.Context, client *dynamic.DynamicClient, names
 	if err != nil {
 		return err
 	}
-	return nil
 
-	// TODO: amalthea sessions
+	err = DeleteAmaltheaSessions(ctx, client, namespace, opts.JupyterServerGvr)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ForciblyDeleteAllSessions(ctx context.Context, client *dynamic.DynamicClient, namespace string, opts DeleteAllSessionsOptions) error {
@@ -26,7 +30,11 @@ func ForciblyDeleteAllSessions(ctx context.Context, client *dynamic.DynamicClien
 	if err != nil {
 		return err
 	}
-	return nil
 
-	// TODO: amalthea sessions
+	err = ForciblyDeleteAmaltheaSessions(ctx, client, namespace, opts.JupyterServerGvr)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
