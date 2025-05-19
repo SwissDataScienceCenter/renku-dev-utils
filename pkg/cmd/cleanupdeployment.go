@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
-	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/helm"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +17,7 @@ var cleanupDeploymentCmd = &cobra.Command{
 }
 
 func cleanupDeployment(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	// ctx := context.Background()
 
 	if namespace == "" {
 		cli, err := github.NewGitHubCLI("")
@@ -33,17 +32,28 @@ func cleanupDeployment(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	client, err := k8s.GetDynamicClient()
+	helm, err := helm.NewHelmCLI("")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	err = helm.UninstallAllReleases(namespace)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = k8s.ListJS(ctx, client, nil)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	// client, err := k8s.GetDynamicClient()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+
+	// err = k8s.ListJS(ctx, client, nil)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
 }
 
 func init() {
