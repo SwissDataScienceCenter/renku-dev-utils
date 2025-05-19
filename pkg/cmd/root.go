@@ -6,6 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Flags
+
+var deleteNamespace bool
+var namespace string
+var secretName string
+var secretKey string
+
 var rootCmd = &cobra.Command{
 	Use:   "rdu",
 	Short: "renku-dev-utils is a dev utility CLI",
@@ -21,6 +28,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
+	rootCmd.AddCommand(cleanupDeploymentCmd)
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
 	rootCmd.AddCommand(versionCmd)
 }
