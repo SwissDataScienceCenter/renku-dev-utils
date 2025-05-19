@@ -22,6 +22,12 @@ vars:  ## Show the Makefile vars
 	@echo VERSION="'$(VERSION)'"
 	@echo DIRTY="'$(DIRTY)'"
 
+.PHONY: rdu
+rdu: build/renku-dev-utils
+	mkdir -p `go env GOPATH`/bin/
+	cp -av build/renku-dev-utils`go env GOEXE` `go env GOPATH`/bin/rdu`go env GOEXE`.new
+	mv -v `go env GOPATH`/bin/rdu`go env GOEXE`.new `go env GOPATH`/bin/rdu`go env GOEXE`
+
 .PHONY: build/renku-dev-utils
 build/renku-dev-utils:
 	go build -v -o build/ $(LDFLAGS)
