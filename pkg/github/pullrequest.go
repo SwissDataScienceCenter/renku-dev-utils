@@ -1,9 +1,12 @@
 package github
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+)
 
-func (cli *GitHubCLI) GetCurrentPullRequest() (int, error) {
-	out, err := cli.RunCmd("pr", "view", "--json", "number")
+func (cli *GitHubCLI) GetCurrentPullRequest(ctx context.Context) (int, error) {
+	out, err := cli.RunCmd(ctx, "pr", "view", "--json", "number")
 	if err != nil {
 		return 0, err
 	}

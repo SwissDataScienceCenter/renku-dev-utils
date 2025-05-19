@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 )
@@ -24,7 +25,7 @@ func NewGitHubCLI(gh string) (*GitHubCLI, error) {
 	return &GitHubCLI{gh: gh}, nil
 }
 
-func (cli *GitHubCLI) RunCmd(arg ...string) ([]byte, error) {
-	cmd := exec.Command(cli.gh, arg...)
+func (cli *GitHubCLI) RunCmd(ctx context.Context, arg ...string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, cli.gh, arg...)
 	return cmd.Output()
 }

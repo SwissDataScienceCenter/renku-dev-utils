@@ -1,12 +1,13 @@
 package helm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 )
 
-func (cli *HelmCLI) ListReleases(namespace string) (releases []string, err error) {
-	out, err := cli.RunCmd("list", "--namespace", namespace, "--all", "--output", "json")
+func (cli *HelmCLI) ListReleases(ctx context.Context, namespace string) (releases []string, err error) {
+	out, err := cli.RunCmd(ctx, "list", "--namespace", namespace, "--all", "--output", "json")
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +28,13 @@ type helmListOutput struct {
 	Name string
 }
 
-func (cli *HelmCLI) UninstallReleases(namespace string, releases []string) error {
-	args := []string{"uninstall", "--dry-run", "--namespace", namespace}
+func (cli *HelmCLI) UninstallReleases(ctx context.Context, namespace string, releases []string) error {
+	args := []string{"uninstall", "--wait", "--namespace", namespace}
 	for _, release := range releases {
 		args = append(args, release)
 	}
 
-	out, err := cli.RunCmd(args...)
+	out, err := cli.RunCmd(ctx, args...)
 	if err != nil {
 		return err
 	}
@@ -43,10 +44,13 @@ func (cli *HelmCLI) UninstallReleases(namespace string, releases []string) error
 	return nil
 }
 
-func (cli *HelmCLI) UninstallAllReleases(namespace string) error {
-	releases, err := cli.ListReleases(namespace)
+func (cli *HelmCLI) UninstallAllReleases(ctx context.Context, namespace string) error {
+	releases, err := cli.ListReleases(ctx, namespace)
 	if err != nil {
 		return err
 	}
-	return cli.UninstallReleases(namespace, releases)
+	if len(releases) == 0 {
+		return nil
+	}
+	return cli.UninstallReleases(ctx, namespace, releases)
 }

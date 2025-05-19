@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 )
@@ -24,7 +25,7 @@ func NewHelmCLI(helm string) (cli *HelmCLI, err error) {
 	return &HelmCLI{helm: helm}, nil
 }
 
-func (cli *HelmCLI) RunCmd(arg ...string) ([]byte, error) {
-	cmd := exec.Command(cli.helm, arg...)
+func (cli *HelmCLI) RunCmd(ctx context.Context, arg ...string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, cli.helm, arg...)
 	return cmd.Output()
 }
