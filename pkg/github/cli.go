@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/executils"
 )
 
 type GitHubCLI struct {
@@ -27,5 +29,5 @@ func NewGitHubCLI(gh string) (*GitHubCLI, error) {
 
 func (cli *GitHubCLI) RunCmd(ctx context.Context, arg ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, cli.gh, arg...)
-	return cmd.Output()
+	return executils.FormatOutput(cmd.Output())
 }

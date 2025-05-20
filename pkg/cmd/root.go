@@ -30,6 +30,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 func init() {
 	rootCmd.AddCommand(cleanupDeploymentCmd)
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
+	rootCmd.AddCommand(openDeploymentCmd)
 	rootCmd.AddCommand(versionCmd)
 }
 
