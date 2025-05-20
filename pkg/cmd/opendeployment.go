@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -36,8 +35,7 @@ func openDeployment(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// TODO: Can we derive the URL by inspecting ingresses in the k8s namespace?
-	openURL, err := url.Parse(fmt.Sprintf("https://%s.dev.renku.ch", namespace))
+	openURL, err := ns.GetDeploymentURL(namespace)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

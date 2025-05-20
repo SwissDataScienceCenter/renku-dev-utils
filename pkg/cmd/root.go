@@ -10,8 +10,11 @@ import (
 
 var deleteNamespace bool
 var namespace string
-var secretName string
+var renkuRealm string
 var secretKey string
+var secretKeyUsername string
+var secretName string
+var userEmail string
 
 var rootCmd = &cobra.Command{
 	Use:   "rdu",
@@ -30,6 +33,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 func init() {
 	rootCmd.AddCommand(cleanupDeploymentCmd)
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
+	rootCmd.AddCommand(makeMeAdminCmd)
 	rootCmd.AddCommand(openDeploymentCmd)
 	rootCmd.AddCommand(versionCmd)
 }

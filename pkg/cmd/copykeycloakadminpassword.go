@@ -10,7 +10,6 @@ import (
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
 	"golang.design/x/clipboard"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var copyKeycloakAdminPasswordCmd = &cobra.Command{
@@ -42,7 +41,7 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	secret, err := clients.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
+	secret, err := k8s.GetSecret(ctx, clients, namespace, secretName)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
