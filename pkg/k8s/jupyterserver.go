@@ -89,7 +89,7 @@ func ForciblyDeleteJupyterServers(ctx context.Context, client *dynamic.DynamicCl
 	for _, server := range servers {
 		err = ForciblyDeleteJupyterServer(ctx, client, namespace, server, gvr)
 		if err != nil {
-			fmt.Printf("Ignoring error: %w\n", err)
+			fmt.Printf("Ignoring error: %s\n", err)
 		}
 	}
 
