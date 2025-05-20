@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/executils"
 )
 
 type HelmCLI struct {
@@ -27,5 +29,5 @@ func NewHelmCLI(helm string) (cli *HelmCLI, err error) {
 
 func (cli *HelmCLI) RunCmd(ctx context.Context, arg ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, cli.helm, arg...)
-	return cmd.Output()
+	return executils.FormatOutput(cmd.Output())
 }
