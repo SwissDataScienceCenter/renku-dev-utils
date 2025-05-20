@@ -26,7 +26,7 @@ jobs:
       
       - name: Install libraries for ubuntu
         run: |
-          apt install libx11-dev
+          sudo apt install libx11-dev
 
       - name: Print environment
         run: |
