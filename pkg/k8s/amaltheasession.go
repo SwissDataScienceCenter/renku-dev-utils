@@ -89,7 +89,7 @@ func ForciblyDeleteAmaltheaSessions(ctx context.Context, client *dynamic.Dynamic
 	for _, server := range servers {
 		err = ForciblyDeleteAmaltheaSession(ctx, client, namespace, server, gvr)
 		if err != nil {
-			fmt.Printf("Ignoring error: %w\n", err)
+			fmt.Printf("Ignoring error: %s\n", err)
 		}
 	}
 

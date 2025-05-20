@@ -1,0 +1,39 @@
+name: Run tests
+
+# Trigger on push
+on:
+  push:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+
+      - name: Print environment
+        run: |
+          which go
+          go env
+          make vars
+
+      - name: Check format
+        run: make check-format
+
+      - name: Check vet
+        run: make check-vet
+
+      - name: Build renku-dev-utils
+        run: make rdu

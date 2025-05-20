@@ -52,3 +52,11 @@ help:  ## Display this help.
 .PHONY: format
 format:  ## Format source files
 	gofmt -l -w .
+
+.PHONY: check-format
+check-format:  ## Check that sources are correctly formatted
+	gofmt -d -s . && git diff --exit-code
+
+.PHONY: check-vet
+check-vet:  ## Check source files with `go vet`
+	go vet ./...
