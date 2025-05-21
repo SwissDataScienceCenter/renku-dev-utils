@@ -34,6 +34,7 @@ func init() {
 	rootCmd.AddCommand(cleanupDeploymentCmd)
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
 	rootCmd.AddCommand(makeMeAdminCmd)
+	rootCmd.AddCommand(namespaceCmd)
 	rootCmd.AddCommand(openDeploymentCmd)
 	rootCmd.AddCommand(versionCmd)
 }
