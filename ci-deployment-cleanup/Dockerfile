@@ -29,7 +29,7 @@ RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/s
     && rm get_helm.sh
 
 # Copy the rdu binary from builder stage
-COPY --from=builder /go/bin/rdu /usr/local/bin/rdu
+COPY --from=builder /app/build/renku-dev-utils /usr/local/bin/rdu
 
 # Make rdu executable
 RUN chmod +x /usr/local/bin/rdu
