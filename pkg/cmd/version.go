@@ -14,6 +14,5 @@ var versionCmd = &cobra.Command{
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
-	// fmt.Printf("renku-dev-utils %s\n", version.Version)
-	fmt.Printf("renku-dev-utils %s\n", version.BB())
+	fmt.Printf("renku-dev-utils %s\n", version.Version)
 }
