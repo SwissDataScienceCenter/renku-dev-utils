@@ -4,7 +4,7 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 # Current git commit hash
 GIT_COMMIT_HASH := $(shell git show --no-patch --no-notes --pretty='%h' HEAD)
 # Current git tag
-GIT_TAG := $(shell git describe --tags --exact-match || "")
+GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null || echo "")
 ifeq ($(GIT_TAG),)
 VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
 else
