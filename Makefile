@@ -3,10 +3,17 @@ SHELL = bash
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 # Current git commit hash
 GIT_COMMIT_HASH := $(shell git show --no-patch --no-notes --pretty='%h' HEAD)
+# Current git tag
+GIT_TAG := $(shell git describe --tags --exact-match || "")
+ifeq ($(GIT_TAG),)
 VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
+else
+VERSION := $(GIT_TAG)
+endif
 ifeq ($(shell git status --porcelain),)
 DIRTY :=
 else
+VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
 DIRTY := "dev"
 endif
 LDFLAGS=--ldflags "-s -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.Version=$(VERSION) -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.VersionSuffix=$(DIRTY)"
@@ -19,6 +26,7 @@ vars:  ## Show the Makefile vars
 	@echo SHELL="'$(SHELL)'"
 	@echo BRANCH="'$(BRANCH)'"
 	@echo GIT_COMMIT_HASH="'$(GIT_COMMIT_HASH)'"
+	@echo GIT_TAG="'$(GIT_TAG)'"
 	@echo VERSION="'$(VERSION)'"
 	@echo DIRTY="'$(DIRTY)'"
 
