@@ -12,16 +12,16 @@ image:
 cronJob:
   # Cron schedule (every 6 hours by default)
   schedule: "0 */6 * * *"
-  
+
   # Concurrency policy for the cronjob
   concurrencyPolicy: Forbid
-  
+
   # Number of failed jobs to keep
   failedJobsHistoryLimit: 3
-  
+
   # Number of successful jobs to keep
   successfulJobsHistoryLimit: 1
-  
+
   # Restart policy for the job pods
   restartPolicy: OnFailure
 
@@ -29,25 +29,29 @@ cronJob:
 cleanup:
   # Maximum age in hours for CI deployments before cleanup
   maxAge: 720
-  
+
   # Label used to exempt namespaces from cleanup
   # Namespaces with this label will be skipped regardless of age
   exemptionLabel: "renku.io/cleanup-exempt=true"
-  
+
   # Namespace name patterns to match (regex patterns)
   # Only namespaces matching these patterns will be considered for cleanup
   namespacePatterns:
     - "^ci-renku-.*"
     - "^renku-blog-ci-.*"
     - "^renku-ci-.*"
-  
+
   # Enable strict name pattern matching (default: true)
   # When true, namespaces must match at least one pattern to be cleaned up
   enforceNamePatterns: true
-  
+
   # Dry run mode - set to true to only log what would be deleted
   dryRun: false
-  
+
+  # Debug mode
+  debug:
+    enabled: false
+
   # GitHub PR-based cleanup configuration
   # Maps namespace patterns to GitHub repositories for PR status checking
   # Format: namespace regex pattern -> {repo: "owner/repo", suffixPattern: "regex"}
@@ -55,7 +59,7 @@ cleanup:
     enabled: false
     # GitHub API token for accessing PR status (required if prCleanup.enabled is true)
     # Should be provided via secret or environment variable
-    githubToken: ""  # Provide via secret or environment variable
+    githubToken: ""
     # Repository mappings
     repositories:
       - namespacePattern: "^ci-renku-(.+)$"
@@ -70,10 +74,10 @@ cleanup:
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
-  
+
   # Annotations to add to the service account
   annotations: {}
-  
+
   # The name of the service account to use
   name: ""
 

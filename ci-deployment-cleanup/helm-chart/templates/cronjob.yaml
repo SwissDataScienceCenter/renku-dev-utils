@@ -26,17 +26,37 @@ spec:
             - /bin/bash
             - /scripts/cleanup.sh
             env:
-            {{- if .Values.cleanup.dryRun }}
-            - name: DRY_RUN
-              value: "true"
+            - name: MAX_AGE_HOURS
+              value: {{ .Values.cleanup.maxAge | quote }}
+            - name: EXEMPTION_LABEL
+              value: {{ .Values.cleanup.exemptionLabel | quote }}
+            - name: ENFORCE_NAME_PATTERNS
+              value: {{ .Values.cleanup.enforceNamePatterns | quote }}
+            {{- if .Values.cleanup.enforceNamePatterns }}
+            - name: NAMESPACE_PATTERNS
+              value: {{ join " " .Values.cleanup.namespacePatterns | quote }}
             {{- end }}
+            - name: PR_CLEANUP_ENABLED
+              value: {{ .Values.cleanup.prCleanup.enabled | quote }}
             {{- if .Values.cleanup.prCleanup.enabled }}
+            - name: PR_REPOSITORIES
+              value: "{{- range $i, $repo := .Values.cleanup.prCleanup.repositories }}{{- if $i }} {{ end }}{{ $repo.namespacePattern }}:{{ $repo.repo }}{{- end }}"
             - name: GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "renku-ci-cleanup.fullname" . }}-github-token
                   key: token
                   optional: true
+            {{- end }}
+            {{- if .Values.cleanup.dryRun }}
+            - name: DRY_RUN
+              value: "true"
+            {{- end }}
+            {{- if .Values.debug }}
+            {{- if .Values.debug.enabled }}
+            - name: DEBUG_MODE
+              value: "true"
+            {{- end }}
             {{- end }}
             volumeMounts:
             - name: cleanup-script
