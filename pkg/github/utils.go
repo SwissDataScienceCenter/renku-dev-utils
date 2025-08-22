@@ -10,7 +10,7 @@ func DeriveK8sNamespace(repo string, pr int) (string, error) {
 	if found {
 		return fmt.Sprintf(tpl, pr), nil
 	}
-	return "", fmt.Errorf("Could not derive namespace from repository: %s", repo)
+	return "", fmt.Errorf("could not derive namespace from repository: %s", repo)
 }
 
 func init() {
@@ -19,6 +19,7 @@ func init() {
 
 func initRepoToNamespaceTemplateMap() {
 	repoToNamespaceTemplateMap = map[string]string{
+		"SwissDataScienceCenter/amalthea":            "renku-ci-am-%d",
 		"SwissDataScienceCenter/renku":               "ci-renku-%d",
 		"SwissDataScienceCenter/renku-data-services": "renku-ci-ds-%d",
 		"SwissDataScienceCenter/renku-ui":            "renku-ci-ui-%d",
