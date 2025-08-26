@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
@@ -51,7 +52,10 @@ func DeleteJupyterServers(ctx context.Context, client *dynamic.DynamicClient, na
 
 	propagation := metav1.DeletePropagationBackground
 	err := client.Resource(*gvr).Namespace(namespace).DeleteCollection(ctx, metav1.DeleteOptions{PropagationPolicy: &propagation}, metav1.ListOptions{})
-	if err != nil {
+	if err != nil && k8serrors.IsNotFound(err) {
+		fmt.Printf("Warning: Resource not found: %s\n", gvr.String())
+		return nil
+	} else if err != nil {
 		return err
 	}
 	return nil
@@ -82,7 +86,13 @@ func ForciblyDeleteJupyterServer(ctx context.Context, client *dynamic.DynamicCli
 
 func ForciblyDeleteJupyterServers(ctx context.Context, client *dynamic.DynamicClient, namespace string, gvr *schema.GroupVersionResource) error {
 	servers, err := ListJupyterServers(ctx, client, namespace, gvr)
-	if err != nil {
+	if err != nil && k8serrors.IsNotFound(err) {
+		if gvr == nil {
+			gvr = &jupyterServerGroupVersionResource
+		}
+		fmt.Printf("Warning: Resource not found: %s\n", gvr.String())
+		return nil
+	} else if err != nil {
 		return err
 	}
 
