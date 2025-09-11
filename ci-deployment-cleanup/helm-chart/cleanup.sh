@@ -182,6 +182,17 @@ check_pr_status() {
 
       debug_log "GitHub API response received"
 
+      # Check for authentication errors
+      local auth_error
+      auth_error=$(echo "$pr_response" | grep -o '"message":[[:space:]]*"[^"]*"' | sed 's/"message":[[:space:]]*"\([^"]*\)"/\1/')
+
+      if [ "$auth_error" = "Bad credentials" ]; then
+        echo "  → GitHub authentication failed (bad credentials), skipping PR cleanup for all namespaces"
+        debug_log "GitHub authentication failed - bad credentials"
+        export GITHUB_AUTH_FAILED=true
+        return 1
+      fi
+
       # Check if PR exists and get its state
       local pr_state
       pr_state=$(echo "$pr_response" | grep -o '"state":[[:space:]]*"[^"]*"' | sed 's/"state":[[:space:]]*"\([^"]*\)"/\1/')
@@ -298,8 +309,8 @@ kubectl get namespaces \
       debug_log "Age-based cleanup triggered"
     fi
 
-    # Check PR-based cleanup if enabled
-    if [ "$PR_CLEANUP_ENABLED" = "true" ]; then
+    # Check PR-based cleanup if enabled and GitHub auth is working
+    if [ "$PR_CLEANUP_ENABLED" = "true" ] && [ "$GITHUB_AUTH_FAILED" != "true" ]; then
       if check_pr_status "$namespace"; then
         should_cleanup=true
         if [ -n "$cleanup_reason" ]; then
@@ -309,6 +320,9 @@ kubectl get namespaces \
         fi
         debug_log "PR-based cleanup triggered: $PR_CLEANUP_REASON"
       fi
+    elif [ "$PR_CLEANUP_ENABLED" = "true" ] && [ "$GITHUB_AUTH_FAILED" = "true" ]; then
+      echo "  → Skipping PR-based cleanup due to GitHub authentication failure"
+      debug_log "Skipping PR cleanup due to GitHub auth failure"
     fi
 
     if [ "$should_cleanup" = "true" ]; then
@@ -370,4 +384,3 @@ kubectl get namespaces \
 
 debug_log "Namespace processing completed"
 echo "Renku CI deployment cleanup completed"
-
