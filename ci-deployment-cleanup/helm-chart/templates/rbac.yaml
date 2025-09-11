@@ -1,0 +1,45 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "renku-ci-cleanup.fullname" . }}
+  labels:
+    {{- include "renku-ci-cleanup.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "delete", "watch"]
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]
+  verbs: ["get", "list", "delete", "deletecollection"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "delete", "deletecollection"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["amalthea.dev"]
+  resources: ["amaltheasessions", "jupyterservers"]
+  verbs: ["get", "list", "delete", "deletecollection", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "renku-ci-cleanup.fullname" . }}
+  labels:
+    {{- include "renku-ci-cleanup.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "renku-ci-cleanup.fullname" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "renku-ci-cleanup.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
