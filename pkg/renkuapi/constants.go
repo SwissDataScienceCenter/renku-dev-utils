@@ -1,3 +1,3 @@
 package renkuapi
 
-const keyringService string = "renku-dev-utils"
+const keyringService string = "github.com/SwissDataScienceCenter/renku-dev-utils"
