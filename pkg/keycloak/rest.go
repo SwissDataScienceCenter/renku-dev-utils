@@ -102,7 +102,6 @@ func (client *KeycloakClient) PostForm(ctx context.Context, url string, data url
 	}
 
 	return resp, nil
-
 }
 
 func tryParseResponse(resp *http.Response, result any) error {
