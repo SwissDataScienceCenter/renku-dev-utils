@@ -61,7 +61,11 @@ func login(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	auth.GetAccessToken()
+	err = auth.Login(ctx)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func init() {
