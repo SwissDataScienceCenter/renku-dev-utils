@@ -4,8 +4,8 @@ go 1.24.2
 
 require (
 	github.com/spf13/cobra v1.10.1
-	k8s.io/api v0.34.0
-	k8s.io/apimachinery v0.34.0
+	k8s.io/api v0.34.1
+	k8s.io/apimachinery v0.34.1
 )
 
 require (
@@ -55,5 +55,5 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	golang.design/x/clipboard v0.7.1
-	k8s.io/client-go v0.34.0
+	k8s.io/client-go v0.34.1
 )
