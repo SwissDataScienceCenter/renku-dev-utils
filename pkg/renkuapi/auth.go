@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/executils"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/zalando/go-keyring"
 )
 
@@ -23,6 +27,9 @@ type RenkuApiAuth struct {
 
 	clientID string
 	scope    string
+
+	accessToken  string
+	refreshToken string
 
 	httpClient *http.Client
 }
@@ -53,17 +60,80 @@ func NewRenkuApiAuth(baseURL string) (auth *RenkuApiAuth, err error) {
 	return auth, nil
 }
 
-func (auth *RenkuApiAuth) GetAccessToken() (token string, err error) {
+func (auth *RenkuApiAuth) GetAccessToken(ctx context.Context) (token string, err error) {
+	// Use access token if valid
+	token = auth.accessToken
+	if token != "" && isTokenValid(token) {
+		return token, nil
+	}
 	token, err = auth.getAccessTokenFromKeyring()
-	fmt.Println(token)
-	fmt.Println(err)
+	if err != nil {
+		token = ""
+	}
+	if token != "" && isTokenValid(token) {
+		return token, nil
+	}
 
-	return "", fmt.Errorf("not implemented")
+	// Refresh the access token if possible
+	refreshToken := auth.refreshToken
+	if refreshToken == "" {
+		refreshToken, err = auth.getRefreshTokenFromKeyring()
+		if err != nil {
+			refreshToken = ""
+		}
+	}
+	if refreshToken == "" {
+		return "", fmt.Errorf("could not get access token")
+	}
+	tokenResult, err := auth.postRefeshToken(ctx, refreshToken)
+	if err != nil {
+		return token, nil
+	}
+	auth.accessToken = tokenResult.AccessToken
+	auth.refreshToken = tokenResult.RefreshToken
+	err = auth.saveAccessTokenToKeyring()
+	if err != nil {
+		return auth.accessToken, err
+	}
+	err = auth.saveRefreshTokenToKeyring()
+	if err != nil {
+		return auth.accessToken, err
+	}
+	return auth.accessToken, nil
+}
+
+func isTokenValid(token string) (isValid bool) {
+	claims := jwt.RegisteredClaims{}
+	parser := jwt.NewParser()
+	_, _, err := parser.ParseUnverified(token, &claims)
+	if err != nil {
+		return false
+	}
+	exp, err := claims.GetExpirationTime()
+	if err != nil || exp == nil {
+		return false
+	}
+	now := time.Now()
+	leeway := time.Second * 10
+	return now.Before(exp.Add(-leeway))
 }
 
 func (auth *RenkuApiAuth) getAccessTokenFromKeyring() (token string, err error) {
 	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "access_token")
-	return keyring.Get(keyringService, kUser)
+	token, err = keyring.Get(keyringService, kUser)
+	if err != nil {
+		return token, err
+	}
+	auth.accessToken = token
+	return token, nil
+}
+
+func (auth *RenkuApiAuth) saveAccessTokenToKeyring() (err error) {
+	if auth.accessToken == "" {
+		return fmt.Errorf("access_token is not set")
+	}
+	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "access_token")
+	return keyring.Set(keyringService, kUser, auth.accessToken)
 }
 
 func (auth *RenkuApiAuth) getRefreshTokenFromKeyring() (token string, err error) {
@@ -71,11 +141,24 @@ func (auth *RenkuApiAuth) getRefreshTokenFromKeyring() (token string, err error)
 	return keyring.Get(keyringService, kUser)
 }
 
+func (auth *RenkuApiAuth) saveRefreshTokenToKeyring() (err error) {
+	if auth.refreshToken == "" {
+		return fmt.Errorf("refresh_token is not set")
+	}
+	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "refresh_token")
+	return keyring.Set(keyringService, kUser, auth.refreshToken)
+}
+
 func (auth *RenkuApiAuth) getKeyringUserPrefix() string {
 	return fmt.Sprintf("rdu:%s", auth.baseURL.String())
 }
 
 func (auth *RenkuApiAuth) Login(ctx context.Context) error {
+	// TODO: check username from API
+	token, _ := auth.GetAccessToken(ctx)
+	if token != "" {
+		return nil
+	}
 	err := auth.performLogin(ctx)
 	if err != nil {
 		return err
@@ -88,8 +171,21 @@ func (auth *RenkuApiAuth) performLogin(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("deviceAuthorization: %+v\n", deviceAuthorization)
-	return fmt.Errorf("not implemented")
+	err = openBrowser(ctx, deviceAuthorization.VerificationURIComplete)
+	if err != nil {
+		return err
+	}
+	tokenResult, err := auth.pollTokenEndpoint(ctx, deviceAuthorization)
+	if err != nil {
+		return err
+	}
+	auth.accessToken = tokenResult.AccessToken
+	auth.refreshToken = tokenResult.RefreshToken
+	err = auth.saveAccessTokenToKeyring()
+	if err != nil {
+		return err
+	}
+	return auth.saveRefreshTokenToKeyring()
 }
 
 func (auth *RenkuApiAuth) startLogin(ctx context.Context) (result deviceAuthorization, err error) {
@@ -160,14 +256,11 @@ func (auth *RenkuApiAuth) getTokenURI(ctx context.Context) (tokenURI *url.URL, e
 
 func (auth *RenkuApiAuth) getOpenIDConfiguration(ctx context.Context) error {
 	configurationURL := auth.issuerURL.JoinPath("./.well-known/openid-configuration")
-	fmt.Printf("configurationURL: %s\n", configurationURL.String())
 	var result openIDConfigurationResponse
 	_, err := auth.get(ctx, configurationURL.String(), &result)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("result: %+v\n", result)
 
 	parsed, err := url.Parse(result.DeviceAuthorizationEndpoint)
 	if err != nil {
@@ -253,4 +346,114 @@ func tryParseResponse(resp *http.Response, result any) error {
 	}
 
 	return json.Unmarshal(outBuf.Bytes(), result)
+}
+
+// TODO: refactor this to avoid duplication with opendeployment.go
+func openBrowser(ctx context.Context, openURL string) error {
+	if runtime.GOOS == "darwin" {
+		fmt.Printf("Opening: %s\n", openURL)
+		cmd := exec.CommandContext(ctx, "open", openURL)
+		_, err := executils.FormatOutput(cmd.Output())
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if runtime.GOOS == "linux" {
+		fmt.Printf("Opening: %s\n", openURL)
+		cmd := exec.CommandContext(ctx, "xdg-open", openURL)
+		_, err := executils.FormatOutput(cmd.Output())
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	fmt.Printf("Open this link in your browser: %s\n", openURL)
+	return nil
+}
+
+func (auth *RenkuApiAuth) pollTokenEndpoint(ctx context.Context, deviceAuthorization deviceAuthorization) (result tokenResult, err error) {
+	deadline, cancel := context.WithDeadline(ctx, deviceAuthorization.ExpiresAt.Add(deviceAuthorization.Interval))
+	defer cancel()
+
+	ticker := time.NewTicker(deviceAuthorization.Interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-deadline.Done():
+			return result, deadline.Err()
+		case <-ticker.C:
+			result, err := auth.postToken(deadline, deviceAuthorization.DeviceCode)
+			if err == nil {
+				return result, nil
+			}
+		}
+	}
+}
+
+func (auth *RenkuApiAuth) postToken(ctx context.Context, deviceCode string) (result tokenResult, err error) {
+	tokenURI, err := auth.getTokenURI(ctx)
+	if err != nil {
+		return result, err
+	}
+
+	body := url.Values{}
+	body.Set("client_id", auth.clientID)
+	body.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+	body.Set("device_code", deviceCode)
+
+	var res tokenResponse
+	_, err = auth.postForm(ctx, tokenURI.String(), body, &res)
+	if err != nil {
+		return result, err
+	}
+
+	result = tokenResult{
+		AccessToken:  res.AccessToken,
+		RefreshToken: res.RefreshToken,
+	}
+	return result, nil
+}
+
+type tokenResult struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+type tokenResponse struct {
+	AccessToken      string `json:"access_token"`
+	ExpiresIn        int32  `json:"expires_in"`
+	RefreshToken     string `json:"refresh_token"`
+	RefreshExpiresIn int32  `json:"refresh_expires_in"`
+	TokenType        string `json:"token_type"`
+	NotBeforePolicy  int32  `json:"not-before-policy"`
+	SessionState     string `json:"session_state"`
+	Scope            string `json:"scope"`
+}
+
+func (auth *RenkuApiAuth) postRefeshToken(ctx context.Context, refreshToken string) (result tokenResult, err error) {
+	tokenURI, err := auth.getTokenURI(ctx)
+	if err != nil {
+		return result, err
+	}
+
+	body := url.Values{}
+	body.Set("client_id", auth.clientID)
+	body.Set("grant_type", "refresh_token")
+	body.Set("refresh_token", refreshToken)
+
+	var res tokenResponse
+	_, err = auth.postForm(ctx, tokenURI.String(), body, &res)
+	if err != nil {
+		return result, err
+	}
+
+	result = tokenResult{
+		AccessToken:  res.AccessToken,
+		RefreshToken: res.RefreshToken,
+	}
+	return result, nil
 }

@@ -3,6 +3,7 @@ module github.com/SwissDataScienceCenter/renku-dev-utils
 go 1.24.2
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/spf13/cobra v1.10.1
 	github.com/zalando/go-keyring v0.2.6
 	k8s.io/api v0.34.0
