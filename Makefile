@@ -68,3 +68,17 @@ check-format:  ## Check that sources are correctly formatted
 .PHONY: check-vet
 check-vet:  ## Check source files with `go vet`
 	go vet ./...
+
+##@ Code generation
+
+.PHONY: renku-users-apispec
+renku-users-apispec:  ## Download the "users" API spec
+	curl -L -o pkg/renkuapi/users/api.spec.yaml https://raw.githubusercontent.com/SwissDataScienceCenter/renku-data-services/refs/heads/main/components/renku_data_services/users/api.spec.yaml
+	sed -e 's/- default: "general"//g' pkg/renkuapi/users/api.spec.yaml > pkg/renkuapi/users/api.spec.new.yaml
+	mv pkg/renkuapi/users/api.spec.new.yaml pkg/renkuapi/users/api.spec.yaml
+
+.PHONY: generate
+generate: pkg/renkuapi/users/users_gen.go  ## Run go generate
+
+pkg/renkuapi/users/users_gen.go: pkg/renkuapi/users/api.spec.yaml
+	go generate pkg/renkuapi/users/users.go
