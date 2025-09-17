@@ -60,6 +60,25 @@ func NewRenkuApiAuth(baseURL string) (auth *RenkuApiAuth, err error) {
 	return auth, nil
 }
 
+// RequestEditorFn  is the function signature for the RequestEditor callback function
+type RequestEditorFn func(ctx context.Context, req *http.Request) error
+
+// RequestEditor returns a request editor which injects a valid access token
+// for API requests.
+func (auth *RenkuApiAuth) RequestEditor() RequestEditorFn {
+	return func(ctx context.Context, req *http.Request) error {
+		if req.Header.Get("Authorization") != "" {
+			return nil
+		}
+		token, err := auth.GetAccessToken(ctx)
+		if err != nil {
+			return err
+		}
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+		return nil
+	}
+}
+
 func (auth *RenkuApiAuth) GetAccessToken(ctx context.Context) (token string, err error) {
 	// Use access token if valid
 	token = auth.accessToken
@@ -154,7 +173,6 @@ func (auth *RenkuApiAuth) getKeyringUserPrefix() string {
 }
 
 func (auth *RenkuApiAuth) Login(ctx context.Context) error {
-	// TODO: check username from API
 	token, _ := auth.GetAccessToken(ctx)
 	if token != "" {
 		return nil

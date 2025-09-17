@@ -8,6 +8,7 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi"
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi/users"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +54,7 @@ func login(cmd *cobra.Command, args []string) {
 		url = deploymentURL.String()
 	}
 
-	fmt.Printf("URL '%s'\n", url)
+	fmt.Printf("Renku URL: %s\n", url)
 
 	auth, err := renkuapi.NewRenkuApiAuth(url)
 	if err != nil {
@@ -66,6 +67,26 @@ func login(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	ruc, err := users.NewRenkuUsersClient(url, users.WithRequestEditors(users.RequestEditorFn(auth.RequestEditor())))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	userInfo, err := ruc.GetUser(ctx)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Logged in as:")
+	fmt.Printf("  username: %s\n", userInfo.Username)
+	fmt.Printf("  email: %s\n", *userInfo.Email)
+	fmt.Printf("  first name: %s\n", *userInfo.FirstName)
+	fmt.Printf("  last name: %s\n", *userInfo.LastName)
+	fmt.Printf("  is admin: %t\n", userInfo.IsAdmin)
+
 }
 
 func init() {
