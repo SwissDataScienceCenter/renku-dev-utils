@@ -155,6 +155,11 @@ func (auth *RenkuApiAuth) saveAccessTokenToKeyring() (err error) {
 	return keyring.Set(keyringService, kUser, auth.accessToken)
 }
 
+func (auth *RenkuApiAuth) deleteAccessTokenFromKeyring() (err error) {
+	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "access_token")
+	return keyring.Delete(keyringService, kUser)
+}
+
 func (auth *RenkuApiAuth) getRefreshTokenFromKeyring() (token string, err error) {
 	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "refresh_token")
 	return keyring.Get(keyringService, kUser)
@@ -166,6 +171,11 @@ func (auth *RenkuApiAuth) saveRefreshTokenToKeyring() (err error) {
 	}
 	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "refresh_token")
 	return keyring.Set(keyringService, kUser, auth.refreshToken)
+}
+
+func (auth *RenkuApiAuth) deleteRefreshTokenFromKeyring() (err error) {
+	kUser := fmt.Sprintf("%s:%s", auth.getKeyringUserPrefix(), "refresh_token")
+	return keyring.Delete(keyringService, kUser)
 }
 
 func (auth *RenkuApiAuth) getKeyringUserPrefix() string {
@@ -474,4 +484,21 @@ func (auth *RenkuApiAuth) postRefeshToken(ctx context.Context, refreshToken stri
 		RefreshToken: res.RefreshToken,
 	}
 	return result, nil
+}
+
+func (auth *RenkuApiAuth) Logout(ctx context.Context) error {
+	err1 := auth.deleteAccessTokenFromKeyring()
+	err2 := auth.deleteRefreshTokenFromKeyring()
+	if err1 != nil && err2 != nil {
+		return fmt.Errorf("got errors: %w and %w", err1, err2)
+	}
+	if err1 != nil {
+		return err1
+	}
+	return err2
+}
+
+func LogoutAll(ctx context.Context) error {
+	return keyring.DeleteAll(keyringService)
+
 }
