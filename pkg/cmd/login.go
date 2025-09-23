@@ -86,7 +86,6 @@ func login(cmd *cobra.Command, args []string) {
 	fmt.Printf("  first name: %s\n", *userInfo.FirstName)
 	fmt.Printf("  last name: %s\n", *userInfo.LastName)
 	fmt.Printf("  is admin: %t\n", userInfo.IsAdmin)
-
 }
 
 func init() {
