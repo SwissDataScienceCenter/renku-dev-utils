@@ -85,5 +85,5 @@ func logout(cmd *cobra.Command, args []string) {
 func init() {
 	logoutCmd.Flags().String("url", "", "instance URL")
 	logoutCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
-	logoutCmd.Flags().Bool("all", false, "remote all saved logins")
+	logoutCmd.Flags().Bool("all", false, "remove all saved logins")
 }
