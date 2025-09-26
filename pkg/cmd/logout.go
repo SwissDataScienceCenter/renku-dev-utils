@@ -69,13 +69,13 @@ func logout(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Renku URL: %s\n", url)
 
-	auth, err := renkuapi.NewRenkuApiAuth(url)
+	rac, err := renkuapi.NewRenkuApiClient(url)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = auth.Logout(ctx)
+	err = rac.Auth().Logout(ctx)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

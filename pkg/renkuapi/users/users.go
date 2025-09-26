@@ -11,7 +11,7 @@ import (
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -generate types,client,spec -package users -o users_gen.go api.spec.yaml
 
 type RenkuUsersClient struct {
-	bacseClient    *ClientWithResponses
+	baseClient     *ClientWithResponses
 	httpClient     *http.Client
 	requestEditors []RequestEditorFn
 }
@@ -45,7 +45,7 @@ func NewRenkuUsersClient(apiURL string, options ...RenkuUsersClientOption) (c *R
 	if err != nil {
 		return nil, err
 	}
-	c.bacseClient = client
+	c.baseClient = client
 	return c, nil
 }
 
@@ -66,7 +66,7 @@ func WithRequestEditors(editors ...RequestEditorFn) RenkuUsersClientOption {
 }
 
 func (c *RenkuUsersClient) GetUser(ctx context.Context) (userInfo SelfUserInfo, err error) {
-	res, err := c.bacseClient.GetUserWithResponse(ctx)
+	res, err := c.baseClient.GetUserWithResponse(ctx)
 	if err != nil {
 		return userInfo, err
 	}
