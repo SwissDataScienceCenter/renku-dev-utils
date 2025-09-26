@@ -54,8 +54,20 @@ func (rac *RenkuApiClient) IsLoggedIn(ctx context.Context) bool {
 	return token != ""
 }
 
+func (rac *RenkuApiClient) IsAdmin(ctx context.Context) bool {
+	ruc, err := rac.Users()
+	if err != nil {
+		return false
+	}
+	userInfo, err := ruc.GetUser(ctx)
+	if err != nil {
+		return false
+	}
+	return userInfo.IsAdmin
+}
+
 func (rac *RenkuApiClient) Session() (rsc *session.RenkuSessionClient, err error) {
-	if rac.ruc == nil {
+	if rac.rsc == nil {
 		rsc, err = session.NewRenkuSessionClient(rac.baseURL.String(), session.WithRequestEditors(session.RequestEditorFn(rac.auth.RequestEditor())))
 		if err != nil {
 			return nil, err

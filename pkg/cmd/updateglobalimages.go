@@ -92,6 +92,14 @@ func updateGlobalImages(cmd *cobra.Command, args []string) {
 			showCmd = showCmd + fmt.Sprintf(" --namespace %s", namespace)
 		}
 		fmt.Printf("Please run \"%s\" before running this command\n", showCmd)
+		os.Exit(1)
+	}
+
+	if !rac.IsAdmin(ctx) {
+		fmt.Println("Error: not an admin")
+		fmt.Println("Please make sure you are a Renku admin before running this command")
+		fmt.Println("See: rdu make-me-admin --help")
+		os.Exit(1)
 	}
 
 	rsc, err := rac.Session()

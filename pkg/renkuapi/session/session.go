@@ -13,7 +13,7 @@ import (
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -generate types,client,spec -package session -o session_gen.go api.spec.yaml
 
 type RenkuSessionClient struct {
-	bacseClient    *ClientWithResponses
+	baseClient     *ClientWithResponses
 	httpClient     *http.Client
 	requestEditors []RequestEditorFn
 }
@@ -47,7 +47,7 @@ func NewRenkuSessionClient(apiURL string, options ...RenkuSessionClientOption) (
 	if err != nil {
 		return nil, err
 	}
-	c.bacseClient = client
+	c.baseClient = client
 	return c, nil
 }
 
@@ -68,7 +68,7 @@ func WithRequestEditors(editors ...RequestEditorFn) RenkuSessionClientOption {
 }
 
 func (c *RenkuSessionClient) GetGlobalEnvironments(ctx context.Context) (environments EnvironmentList, err error) {
-	res, err := c.bacseClient.GetEnvironmentsWithResponse(ctx, nil)
+	res, err := c.baseClient.GetEnvironmentsWithResponse(ctx, nil)
 	if err != nil {
 		return environments, err
 	}
@@ -86,7 +86,7 @@ func (c *RenkuSessionClient) GetGlobalEnvironments(ctx context.Context) (environ
 }
 
 func (c *RenkuSessionClient) PostGlobalEnvironment(ctx context.Context, body EnvironmentPost) (environment Environment, err error) {
-	res, err := c.bacseClient.PostEnvironmentsWithResponse(ctx, body)
+	res, err := c.baseClient.PostEnvironmentsWithResponse(ctx, body)
 	if err != nil {
 		return environment, err
 	}
@@ -104,7 +104,7 @@ func (c *RenkuSessionClient) PostGlobalEnvironment(ctx context.Context, body Env
 }
 
 func (c *RenkuSessionClient) PatchGlobalEnvironment(ctx context.Context, environmentId Ulid, body EnvironmentPatch) (environment Environment, err error) {
-	res, err := c.bacseClient.PatchEnvironmentsEnvironmentIdWithResponse(ctx, environmentId, body)
+	res, err := c.baseClient.PatchEnvironmentsEnvironmentIdWithResponse(ctx, environmentId, body)
 	if err != nil {
 		return environment, err
 	}
@@ -125,7 +125,11 @@ func (c *RenkuSessionClient) PatchGlobalEnvironment(ctx context.Context, environ
 }
 
 func (c *RenkuSessionClient) UpdateGlobalImages(ctx context.Context, images []string, tag string, existingEnvironments EnvironmentList, dryRun bool) error {
-	fmt.Println("Performing the following updates:")
+	if dryRun {
+		fmt.Println("The following updates would be performed:")
+	} else {
+		fmt.Println("Performing the following updates:")
+	}
 	for _, image := range images {
 		_, err := c.updateGlobalImage(ctx, image, tag, existingEnvironments, dryRun)
 		if err != nil {
