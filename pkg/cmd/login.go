@@ -8,7 +8,6 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi"
-	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi/users"
 	"github.com/spf13/cobra"
 )
 
@@ -56,19 +55,19 @@ func login(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Renku URL: %s\n", url)
 
-	auth, err := renkuapi.NewRenkuApiAuth(url)
+	rac, err := renkuapi.NewRenkuApiClient(url)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = auth.Login(ctx)
+	err = rac.Auth().Login(ctx)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	ruc, err := users.NewRenkuUsersClient(url, users.WithRequestEditors(users.RequestEditorFn(auth.RequestEditor())))
+	ruc, err := rac.Users()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

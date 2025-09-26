@@ -38,6 +38,7 @@ func init() {
 	rootCmd.AddCommand(makeMeAdminCmd)
 	rootCmd.AddCommand(namespaceCmd)
 	rootCmd.AddCommand(openDeploymentCmd)
+	rootCmd.AddCommand(updateGlobalImagesCmd)
 	rootCmd.AddCommand(versionCmd)
 }
 
