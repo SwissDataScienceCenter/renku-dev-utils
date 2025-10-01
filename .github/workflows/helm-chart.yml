@@ -1,0 +1,56 @@
+name: Package and Push Helm Chart
+
+on:
+  push:
+    tags: [ 'ci-deployment-cleanup-v*' ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  helm-chart:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: '3.14.0'
+
+    - name: Log in to Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Determine app version
+      id: version
+      run: |
+        VERSION=$(echo "${{ github.ref_name }}" | sed 's/ci-deployment-cleanup-v//')
+        echo "appVersion=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Update Chart.yaml with app version
+      run: |
+        cd ci-deployment-cleanup/helm-chart
+        sed -i "s/appVersion: .*/appVersion: \"${{ steps.version.outputs.appVersion }}\"/" Chart.yaml
+
+    - name: Lint Helm chart
+      run: |
+        cd ci-deployment-cleanup
+        helm lint helm-chart/
+
+    - name: Package and push Helm chart
+      run: |
+        cd ci-deployment-cleanup
+        helm package helm-chart/
+        helm push *.tgz oci://${{ env.REGISTRY }}/swissdatasciencecenter/helm-charts
