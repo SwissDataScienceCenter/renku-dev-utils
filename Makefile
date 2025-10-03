@@ -71,6 +71,11 @@ check-vet:  ## Check source files with `go vet`
 
 ##@ Code generation
 
+.PHONY: apispecs
+apispecs:  ## Update all API specs
+	$(MAKE) renku-users-apispec
+	$(MAKE) renku-session-apispec
+
 .PHONY: renku-users-apispec
 renku-users-apispec:  ## Download the "users" API spec
 	curl -L -o pkg/renkuapi/users/api.spec.yaml https://raw.githubusercontent.com/SwissDataScienceCenter/renku-data-services/refs/heads/main/components/renku_data_services/users/api.spec.yaml
@@ -80,8 +85,6 @@ renku-users-apispec:  ## Download the "users" API spec
 .PHONY: renku-session-apispec
 renku-session-apispec:  ## Download the "session" API spec
 	curl -L -o pkg/renkuapi/session/api.spec.yaml https://raw.githubusercontent.com/SwissDataScienceCenter/renku-data-services/refs/heads/main/components/renku_data_services/session/api.spec.yaml
-	# sed -e 's/- default: "general"//g' pkg/renkuapi/users/api.spec.yaml > pkg/renkuapi/users/api.spec.new.yaml
-	# mv pkg/renkuapi/users/api.spec.new.yaml pkg/renkuapi/users/api.spec.yaml
 
 .PHONY: generate
 generate: pkg/renkuapi/users/users_gen.go pkg/renkuapi/session/session_gen.go  ## Run go generate
