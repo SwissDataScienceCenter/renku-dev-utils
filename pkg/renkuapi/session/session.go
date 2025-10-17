@@ -187,6 +187,7 @@ func getDefaultEnvironmentPost() EnvironmentPost {
 		Gid:                    ptr.To(1000),
 		Name:                   "", // Leave blank
 		Port:                   ptr.To(8888),
+		MountDirectory:         ptr.To("/home/renku/work"),
 		WorkingDirectory:       ptr.To("/home/renku/work"),
 	}
 }
