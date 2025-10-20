@@ -361,6 +361,11 @@ func (auth *RenkuApiAuth) postForm(ctx context.Context, url string, data url.Val
 		return resp, parseErr
 	}
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// TODO: try to get the error from the response
+		return resp, fmt.Errorf("got non successful response '%s'", resp.Status)
+	}
+
 	return resp, nil
 }
 
