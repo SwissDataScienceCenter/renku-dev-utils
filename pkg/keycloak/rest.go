@@ -30,7 +30,7 @@ func (client *KeycloakClient) GetJSON(ctx context.Context, url string, result an
 	if resp.Header.Get("Content-Type") == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else {
-		return resp, fmt.Errorf("Expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
+		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 && parseErr != nil {
 		return resp, parseErr
@@ -67,7 +67,7 @@ func (client *KeycloakClient) PostJSON(ctx context.Context, url string, body any
 		// No content
 		return resp, nil
 	} else {
-		return resp, fmt.Errorf("Expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
+		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 && parseErr != nil {
 		return resp, parseErr
