@@ -370,7 +370,11 @@ func (auth *RenkuApiAuth) postForm(ctx context.Context, url string, data url.Val
 }
 
 func tryParseResponse(resp *http.Response, result any) error {
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Printf("Warning, could not close HTTP response: %s", err.Error())
+		}
+	}()
 
 	outBuf := new(bytes.Buffer)
 	_, err := outBuf.ReadFrom(resp.Body)
