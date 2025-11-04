@@ -144,5 +144,5 @@ func askForConfirmation(question string) (response bool, err error) {
 	case "no":
 		return false, nil
 	}
-	return false, fmt.Errorf("Invalid answer, aborting.")
+	return false, fmt.Errorf("invalid answer, aborting")
 }
