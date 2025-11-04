@@ -42,3 +42,20 @@ jobs:
 
       - name: Build renku-dev-utils
         run: make rdu
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.2'
+          check-latest: true
+      
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
