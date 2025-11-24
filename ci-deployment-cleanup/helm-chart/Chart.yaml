@@ -1,0 +1,18 @@
+apiVersion: v2
+name: renku-ci-cleanup
+description: A Helm chart for cleaning up old Renku CI deployments
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - renku
+  - ci
+  - cleanup
+  - deployment
+home: https://github.com/SwissDataScienceCenter/renku-dev-utils
+sources:
+  - https://github.com/SwissDataScienceCenter/renku-dev-utils
+maintainers:
+  - name: Renku Team
+    email: hello@renku.io
+    url: https://renkulab.io

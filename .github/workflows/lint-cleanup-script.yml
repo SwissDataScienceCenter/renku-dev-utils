@@ -1,0 +1,26 @@
+name: Lint cleanup.sh script
+
+on:
+  push:
+    paths:
+      - 'ci-deployment-cleanup/helm-chart/cleanup.sh'
+  pull_request:
+    paths:
+      - 'ci-deployment-cleanup/helm-chart/cleanup.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './ci-deployment-cleanup/helm-chart'
+          format: gcc
+          severity: error
