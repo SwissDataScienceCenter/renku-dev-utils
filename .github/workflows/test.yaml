@@ -21,7 +21,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24.2'
+          go-version: '1.25'
           check-latest: true
       
       - name: Install libraries for ubuntu
@@ -52,7 +52,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24.2'
+          go-version: '1.25'
           check-latest: true
 
       - name: Install libraries for ubuntu
