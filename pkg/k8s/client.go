@@ -12,37 +12,22 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func getConfig() (*rest.Config, error) {
+func GetClientset() (*kubernetes.Clientset, error) {
 	config, err := rest.InClusterConfig()
 	if err == nil {
-		return config, nil
+		return kubernetes.NewForConfig(config)
 	}
 
 	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			return nil, err
+	if kubeconfig == "" {
+		home := homedir.HomeDir()
+		if home == "" {
+			return nil, fmt.Errorf("could not determine home directory")
 		}
-		return config, nil
+		kubeconfig = filepath.Join(home, ".kube", "config")
 	}
 
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("could not determine home directory")
-	}
-
-	kubeconfig = filepath.Join(home, ".kube", "config")
 	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
-}
-
-func GetClientset() (*kubernetes.Clientset, error) {
-	config, err := getConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +36,21 @@ func GetClientset() (*kubernetes.Clientset, error) {
 }
 
 func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
-	config, err := getConfig()
+	config, err := rest.InClusterConfig()
+	if err == nil {
+		return dynamic.NewForConfig(config)
+	}
+
+	kubeconfig := os.Getenv("KUBECONFIG")
+	if kubeconfig == "" {
+		home := homedir.HomeDir()
+		if home == "" {
+			return nil, fmt.Errorf("could not determine home directory")
+		}
+		kubeconfig = filepath.Join(home, ".kube", "config")
+	}
+
+	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
