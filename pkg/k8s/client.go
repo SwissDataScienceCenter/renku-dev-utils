@@ -13,30 +13,27 @@ import (
 )
 
 func getConfig() (*rest.Config, error) {
-	// Try in-cluster config first (for running inside K8s pods)
 	config, err := rest.InClusterConfig()
 	if err == nil {
 		return config, nil
 	}
 
-	// Check KUBECONFIG environment variable
-	kubeconfigPath := os.Getenv("KUBECONFIG")
-	if kubeconfigPath != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	kubeconfig := os.Getenv("KUBECONFIG")
+	if kubeconfig != "" {
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
 			return nil, err
 		}
 		return config, nil
 	}
 
-	// Fall back to default kubeconfig location
 	home := homedir.HomeDir()
 	if home == "" {
 		return nil, fmt.Errorf("could not determine home directory")
 	}
 
-	kubeconfigPath = filepath.Join(home, ".kube", "config")
-	config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	kubeconfig = filepath.Join(home, ".kube", "config")
+	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
