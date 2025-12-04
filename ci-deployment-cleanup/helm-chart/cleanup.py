@@ -1,4 +1,5 @@
-import subprocess, shlex
+import subprocess
+import shlex
 import shutil
 import json
 import re
