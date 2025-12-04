@@ -1,26 +1,33 @@
-name: Lint cleanup.sh script
+name: Lint cleanup.py script
 
 on:
   push:
     paths:
-      - 'ci-deployment-cleanup/helm-chart/cleanup.sh'
+      - 'ci-deployment-cleanup/helm-chart/cleanup.py'
   pull_request:
     paths:
-      - 'ci-deployment-cleanup/helm-chart/cleanup.sh'
+      - 'ci-deployment-cleanup/helm-chart/cleanup.py'
 
 permissions:
   contents: read
 
 jobs:
-  shellcheck:
+  ruff:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          scandir: './ci-deployment-cleanup/helm-chart'
-          format: gcc
-          severity: error
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff format check
+        run: ruff format --check ci-deployment-cleanup/helm-chart/cleanup.py
+
+      - name: Run Ruff linting
+        run: ruff check ci-deployment-cleanup/helm-chart/cleanup.py

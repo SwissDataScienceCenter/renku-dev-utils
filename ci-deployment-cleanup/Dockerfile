@@ -18,10 +18,18 @@ RUN apk add --no-cache \
     ca-certificates \
     jq \
     openssl \
+    python3 \
+    py3-pip \
     && ARCH=$(case $(uname -m) in x86_64) echo amd64;; aarch64) echo arm64;; *) echo amd64;; esac) \
     && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${ARCH}/kubectl" \
     && chmod +x kubectl \
     && mv kubectl /usr/local/bin/
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir \
+    python-dateutil \
+    PyGithub \
+    kubernetes
 
 RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
     && chmod 700 get_helm.sh \
