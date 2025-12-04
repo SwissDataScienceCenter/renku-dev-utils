@@ -2,22 +2,33 @@ package k8s
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
-func GetClientset() (*kubernetes.Clientset, error) {
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("could not determine home directory")
+func getConfig() (*rest.Config, error) {
+	config, err := rest.InClusterConfig()
+	if err == nil {
+		return config, nil
 	}
 
-	kubeconfig := filepath.Join(home, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	config, err = kubeConfig.ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load kubeconfig: %w", err)
+	}
+
+	return config, nil
+}
+
+func GetClientset() (*kubernetes.Clientset, error) {
+	config, err := getConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -26,13 +37,7 @@ func GetClientset() (*kubernetes.Clientset, error) {
 }
 
 func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("could not determine home directory")
-	}
-
-	kubeconfig := filepath.Join(home, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := getConfig()
 	if err != nil {
 		return nil, err
 	}

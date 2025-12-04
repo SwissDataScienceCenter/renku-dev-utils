@@ -17,10 +17,10 @@ cronJob:
   concurrencyPolicy: Forbid
 
   # Number of failed jobs to keep
-  failedJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
 
   # Number of successful jobs to keep
-  successfulJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
 
   # Restart policy for the job pods
   restartPolicy: OnFailure

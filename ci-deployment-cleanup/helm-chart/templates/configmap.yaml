@@ -5,4 +5,4 @@ metadata:
   labels:
     {{- include "renku-ci-cleanup.labels" . | nindent 4 }}
 data:
-{{ (.Files.Glob "cleanup.sh").AsConfig | indent 2 }}
+{{ (.Files.Glob "cleanup.py").AsConfig | indent 2 }}

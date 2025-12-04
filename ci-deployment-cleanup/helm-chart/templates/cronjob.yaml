@@ -23,8 +23,8 @@ spec:
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
             imagePullPolicy: {{ .Values.image.pullPolicy }}
             command:
-            - /bin/bash
-            - /scripts/cleanup.sh
+            - python3
+            - /scripts/cleanup.py
             env:
             - name: MAX_AGE_HOURS
               value: {{ .Values.cleanup.maxAge | quote }}
