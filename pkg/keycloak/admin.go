@@ -30,7 +30,7 @@ func (client *KeycloakClient) FindUser(ctx context.Context, realm string, email 
 		}
 	}
 
-	return "", fmt.Errorf("Could not find user '%s' in Keycloak", email)
+	return "", fmt.Errorf("could not find user '%s' in Keycloak", email)
 }
 
 func (client *KeycloakClient) GetAdminUsersURL(realm string) *url.URL {
@@ -75,11 +75,14 @@ func (client *KeycloakClient) findRenkuAdminRole(ctx context.Context, realm stri
 			return role, err
 		}
 	}
-	return roleMapping{}, fmt.Errorf("Could not find role '%s' in Keycloak", renkuAdminRole)
+	return roleMapping{}, fmt.Errorf("could not find role '%s' in Keycloak", renkuAdminRole)
 }
 
 func (client *KeycloakClient) AddRenkuAdminRoleToUser(ctx context.Context, realm string, userID string) error {
 	role, err := client.findRenkuAdminRole(ctx, realm, userID)
+	if err != nil {
+		return err
+	}
 
 	postURL := client.GetAdminRolesURL(realm, userID)
 

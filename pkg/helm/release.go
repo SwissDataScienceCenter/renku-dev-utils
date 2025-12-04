@@ -30,9 +30,7 @@ type helmListOutput struct {
 
 func (cli *HelmCLI) UninstallReleases(ctx context.Context, namespace string, releases []string) error {
 	args := []string{"uninstall", "--wait", "--namespace", namespace}
-	for _, release := range releases {
-		args = append(args, release)
-	}
+	args = append(args, releases...)
 
 	out, err := cli.RunCmd(ctx, args...)
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 func GetClientset() (*kubernetes.Clientset, error) {
 	home := homedir.HomeDir()
 	if home == "" {
-		return nil, fmt.Errorf("Could not determine home directory")
+		return nil, fmt.Errorf("could not determine home directory")
 	}
 
 	kubeconfig := filepath.Join(home, ".kube", "config")
@@ -28,7 +28,7 @@ func GetClientset() (*kubernetes.Clientset, error) {
 func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
 	home := homedir.HomeDir()
 	if home == "" {
-		return nil, fmt.Errorf("Could not determine home directory")
+		return nil, fmt.Errorf("could not determine home directory")
 	}
 
 	kubeconfig := filepath.Join(home, ".kube", "config")

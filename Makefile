@@ -3,10 +3,17 @@ SHELL = bash
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 # Current git commit hash
 GIT_COMMIT_HASH := $(shell git show --no-patch --no-notes --pretty='%h' HEAD)
+# Current git tag
+GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null || echo "")
+ifeq ($(GIT_TAG),)
 VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
+else
+VERSION := $(GIT_TAG)
+endif
 ifeq ($(shell git status --porcelain),)
 DIRTY :=
 else
+VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
 DIRTY := "dev"
 endif
 LDFLAGS=--ldflags "-s -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.Version=$(VERSION) -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.VersionSuffix=$(DIRTY)"
@@ -19,6 +26,7 @@ vars:  ## Show the Makefile vars
 	@echo SHELL="'$(SHELL)'"
 	@echo BRANCH="'$(BRANCH)'"
 	@echo GIT_COMMIT_HASH="'$(GIT_COMMIT_HASH)'"
+	@echo GIT_TAG="'$(GIT_TAG)'"
 	@echo VERSION="'$(VERSION)'"
 	@echo DIRTY="'$(DIRTY)'"
 
@@ -60,3 +68,26 @@ check-format:  ## Check that sources are correctly formatted
 .PHONY: check-vet
 check-vet:  ## Check source files with `go vet`
 	go vet ./...
+
+##@ Code generation
+
+.PHONY: renku-users-apispec
+renku-users-apispec:  ## Download the "users" API spec
+	curl -L -o pkg/renkuapi/users/api.spec.yaml https://raw.githubusercontent.com/SwissDataScienceCenter/renku-data-services/refs/heads/main/components/renku_data_services/users/api.spec.yaml
+	sed -e 's/- default: "general"//g' pkg/renkuapi/users/api.spec.yaml > pkg/renkuapi/users/api.spec.new.yaml
+	mv pkg/renkuapi/users/api.spec.new.yaml pkg/renkuapi/users/api.spec.yaml
+
+.PHONY: renku-session-apispec
+renku-session-apispec:  ## Download the "session" API spec
+	curl -L -o pkg/renkuapi/session/api.spec.yaml https://raw.githubusercontent.com/SwissDataScienceCenter/renku-data-services/refs/heads/main/components/renku_data_services/session/api.spec.yaml
+	# sed -e 's/- default: "general"//g' pkg/renkuapi/users/api.spec.yaml > pkg/renkuapi/users/api.spec.new.yaml
+	# mv pkg/renkuapi/users/api.spec.new.yaml pkg/renkuapi/users/api.spec.yaml
+
+.PHONY: generate
+generate: pkg/renkuapi/users/users_gen.go pkg/renkuapi/session/session_gen.go  ## Run go generate
+
+pkg/renkuapi/users/users_gen.go: pkg/renkuapi/users/api.spec.yaml
+	go generate pkg/renkuapi/users/users.go
+
+pkg/renkuapi/session/session_gen.go: pkg/renkuapi/session/api.spec.yaml
+	go generate pkg/renkuapi/session/session.go

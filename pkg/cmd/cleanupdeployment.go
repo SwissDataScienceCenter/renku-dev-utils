@@ -138,10 +138,11 @@ func askForConfirmation(question string) (response bool, err error) {
 		return false, err
 	}
 	res = strings.ToLower(strings.TrimSpace(res))
-	if res == "yes" {
+	switch res {
+	case "yes":
 		return true, nil
-	} else if res == "no" {
+	case "no":
 		return false, nil
 	}
-	return false, fmt.Errorf("Invalid answer, aborting.")
+	return false, fmt.Errorf("invalid answer, aborting")
 }
