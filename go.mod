@@ -8,7 +8,7 @@ require (
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/oapi-codegen/runtime v1.1.2
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/zalando/go-keyring v0.2.6
 	golang.design/x/clipboard v0.7.1
 	k8s.io/api v0.34.2
