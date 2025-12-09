@@ -33,6 +33,41 @@ func ParseToken(value string) (res, rem string, err error) {
 	return res, rem, nil
 }
 
+func ParseAuthScheme(value string) (res, rem string, err error) {
+	res, rem, err = ParseToken(value)
+	if err != nil {
+		return "", "", fmt.Errorf("%s value is not a valid auth-scheme: %s", value, err.Error())
+	}
+	return res, rem, nil
+}
+
+func ParseSP(value string) (res, rem string, err error) {
+	if value == "" {
+		return "", "", fmt.Errorf("empty string")
+	}
+	first := rune(value[0])
+	if first == ' ' {
+		return value[:1], value[1:], nil
+	}
+	return "", "", fmt.Errorf("not a space char")
+}
+
+func ParseSPPlus(value string) (res, rem string, err error) {
+	res, rem, err = ParseSP(value)
+	if err != nil {
+		return "", "", err
+	}
+	for {
+		nres, nrem, nerr := ParseSP(rem)
+		if nerr != nil {
+			break
+		}
+		res = res + nres
+		rem = nrem
+	}
+	return res, rem, nil
+}
+
 func init() {
 	initTCharRunes()
 }

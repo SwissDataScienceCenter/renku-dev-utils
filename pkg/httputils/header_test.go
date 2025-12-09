@@ -35,3 +35,21 @@ func TestParseToken(t *testing.T) {
 	res, rem, err = ParseToken(value)
 	assert.ErrorContains(t, err, "not a token")
 }
+
+func TestParseSPPLus(t *testing.T) {
+	value := "   "
+	res, rem, err := ParseSPPlus(value)
+	assert.NoError(t, err)
+	assert.Equal(t, "   ", res)
+	assert.Equal(t, "", rem)
+
+	value = "  token"
+	res, rem, err = ParseSPPlus(value)
+	assert.NoError(t, err)
+	assert.Equal(t, "  ", res)
+	assert.Equal(t, "token", rem)
+
+	value = "token"
+	res, rem, err = ParseSPPlus(value)
+	assert.ErrorContains(t, err, "not a space char")
+}
