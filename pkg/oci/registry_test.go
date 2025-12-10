@@ -1,21 +1,23 @@
 package oci
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/distribution/reference"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestA(t *testing.T) {
-	image := "python:3.12@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+func TestCheckImage(t *testing.T) {
+	image := "python:3.12"
 	named, err := reference.ParseDockerRef(image)
 	assert.NoError(t, err)
 
 	rc, err := NewRegistryClient()
 	assert.NoError(t, err)
-	err = rc.CheckImage(t.Context(), named)
+	res, err := rc.CheckImage(t.Context(), named)
 	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
 func TestGetManifestURLForImage(t *testing.T) {
