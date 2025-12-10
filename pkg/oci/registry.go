@@ -101,12 +101,12 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return res, fmt.Errorf("image does not exist: %s", res.Status)
+		return res, fmt.Errorf("image %s does not exist: %s", named.String(), res.Status)
 	}
 
 	contentType := strings.ToLower(res.Header.Get("Content-Type"))
 	if contentType != ociSpec.MediaTypeImageIndex && contentType != ociSpec.MediaTypeImageManifest && contentType != dockerListSpec.MediaTypeManifestList && contentType != dockerSpec.MediaTypeManifest {
-		return res, fmt.Errorf("unexpected response content type %s", contentType)
+		return res, fmt.Errorf("unexpected response content type %s for image %s", contentType, named.String())
 	}
 
 	return res, nil
