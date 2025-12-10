@@ -3,10 +3,13 @@ package session
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/oci"
+	"github.com/distribution/reference"
 	"k8s.io/utils/ptr"
 )
 
@@ -131,12 +134,31 @@ func (c *RenkuSessionClient) UpdateGlobalImages(ctx context.Context, images []st
 		fmt.Println("Performing the following updates:")
 	}
 	for _, image := range images {
-		_, err := c.updateGlobalImage(ctx, image, tag, existingEnvironments, dryRun)
+		err := c.checkImage(ctx, image, tag)
+		if err != nil {
+			return err
+		}
+		_, err = c.updateGlobalImage(ctx, image, tag, existingEnvironments, dryRun)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (c *RenkuSessionClient) checkImage(ctx context.Context, image string, tag string) error {
+	fullImage := fmt.Sprintf("%s:%s", image, tag)
+	rc, err := oci.NewRegistryClient()
+	if err != nil {
+		return err
+	}
+	log.Printf("fullImage = %s\n", fullImage)
+	named, err := reference.ParseDockerRef(fullImage)
+	if err != nil {
+		return err
+	}
+	_, err = rc.CheckImage(ctx, named)
+	return err
 }
 
 func (c *RenkuSessionClient) updateGlobalImage(ctx context.Context, image string, tag string, existingEnvironments EnvironmentList, dryRun bool) (environment Environment, err error) {

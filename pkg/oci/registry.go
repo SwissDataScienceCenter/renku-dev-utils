@@ -35,6 +35,10 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Accept", ociSpec.MediaTypeImageIndex)
+	req.Header.Add("Accept", ociSpec.MediaTypeImageManifest)
+	req.Header.Add("Accept", dockerListSpec.MediaTypeManifestList)
+	req.Header.Add("Accept", dockerSpec.MediaTypeManifest)
 	res, err = rc.client.Do(req)
 	if err != nil {
 		return res, err
@@ -57,7 +61,7 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 				continue
 			}
 			challenge = &challenges[i]
-			token = tokenRes.AccessToken
+			token = tokenRes.Token
 			break
 		}
 		if challenge == nil {
@@ -67,6 +71,10 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 		if err != nil {
 			return nil, err
 		}
+		req.Header.Add("Accept", ociSpec.MediaTypeImageIndex)
+		req.Header.Add("Accept", ociSpec.MediaTypeImageManifest)
+		req.Header.Add("Accept", dockerListSpec.MediaTypeManifestList)
+		req.Header.Add("Accept", dockerSpec.MediaTypeManifest)
 		scheme := "Bearer"
 		switch challenge.Scheme {
 		case auth.BasicAuth:
