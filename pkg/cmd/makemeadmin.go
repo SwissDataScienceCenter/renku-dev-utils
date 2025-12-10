@@ -11,6 +11,7 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/keycloak"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var makeMeAdminCmd = &cobra.Command{
@@ -21,7 +22,17 @@ var makeMeAdminCmd = &cobra.Command{
 }
 
 func makeMeAdmin(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	namespace := viper.GetString("namespace")
+	secretName := viper.GetString("secret-name")
+	secretKey := viper.GetString("secret-key")
+	secretKeyUsername := viper.GetString("secret-key-username")
+	renkuRealm := viper.GetString("renku-realm")
+	userEmail := viper.GetString("user-email")
 
 	if userEmail == "" {
 		gitCli, err := git.NewGitCLI("")
@@ -119,10 +130,10 @@ func makeMeAdmin(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	makeMeAdminCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
-	makeMeAdminCmd.Flags().StringVar(&secretName, "secret-name", "keycloak-password-secret", "secret name")
-	makeMeAdminCmd.Flags().StringVar(&secretKey, "secret-key", "KEYCLOAK_ADMIN_PASSWORD", "secret key")
-	makeMeAdminCmd.Flags().StringVar(&secretKeyUsername, "secret-key-username", "KEYCLOAK_ADMIN", "secret key for the admin username")
-	makeMeAdminCmd.Flags().StringVar(&renkuRealm, "renku-realm", "Renku", "the Keycloak realm used by renku")
-	makeMeAdminCmd.Flags().StringVarP(&userEmail, "user-email", "u", "", "your email")
+	makeMeAdminCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
+	makeMeAdminCmd.Flags().String("secret-name", "keycloak-password-secret", "secret name")
+	makeMeAdminCmd.Flags().String("secret-key", "KEYCLOAK_ADMIN_PASSWORD", "secret key")
+	makeMeAdminCmd.Flags().String("secret-key-username", "KEYCLOAK_ADMIN", "secret key for the admin username")
+	makeMeAdminCmd.Flags().String("renku-realm", "Renku", "the Keycloak realm used by renku")
+	makeMeAdminCmd.Flags().StringP("user-email", "u", "", "your email")
 }

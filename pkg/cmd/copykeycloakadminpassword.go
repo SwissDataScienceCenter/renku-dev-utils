@@ -9,6 +9,7 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.design/x/clipboard"
 )
 
@@ -20,7 +21,14 @@ var copyKeycloakAdminPasswordCmd = &cobra.Command{
 }
 
 func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	namespace := viper.GetString("namespace")
+	secretName := viper.GetString("secret-name")
+	secretKey := viper.GetString("secret-key")
 
 	if namespace == "" {
 		cli, err := github.NewGitHubCLI("")
@@ -64,7 +72,7 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	copyKeycloakAdminPasswordCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
-	copyKeycloakAdminPasswordCmd.Flags().StringVar(&secretName, "secret-name", "keycloak-password-secret", "secret name")
-	copyKeycloakAdminPasswordCmd.Flags().StringVar(&secretKey, "secret-key", "KEYCLOAK_ADMIN_PASSWORD", "secret key")
+	copyKeycloakAdminPasswordCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
+	copyKeycloakAdminPasswordCmd.Flags().String("secret-name", "keycloak-password-secret", "secret name")
+	copyKeycloakAdminPasswordCmd.Flags().String("secret-key", "KEYCLOAK_ADMIN_PASSWORD", "secret key")
 }

@@ -9,6 +9,7 @@ import (
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var updateGlobalImagesCmd = &cobra.Command{
@@ -18,13 +19,15 @@ var updateGlobalImagesCmd = &cobra.Command{
 }
 
 func updateGlobalImages(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
-
-	release, err := cmd.Flags().GetString("release")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
 	}
+
+	url := viper.GetString("url")
+	namespace := viper.GetString("namespace")
+	release := viper.GetString("release")
+	dryRun := viper.GetBool("dry-run")
 
 	if release == "" {
 		cli, err := github.NewGitHubCLI("")
@@ -41,18 +44,7 @@ func updateGlobalImages(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Renku release: %s\n", release)
 
-	url, err := cmd.Flags().GetString("url")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	if url == "" {
-		namespace, err := cmd.Flags().GetString("namespace")
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 		if namespace == "" {
 			cli, err := github.NewGitHubCLI("")
 			if err != nil {
@@ -109,12 +101,6 @@ func updateGlobalImages(cmd *cobra.Command, args []string) {
 	}
 
 	envs, err := rsc.GetGlobalEnvironments(ctx)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	dryRun, err := cmd.Flags().GetBool("dry-run")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

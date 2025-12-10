@@ -11,6 +11,7 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var openDeploymentCmd = &cobra.Command{
@@ -20,7 +21,12 @@ var openDeploymentCmd = &cobra.Command{
 }
 
 func openDeployment(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	namespace := viper.GetString("namespace")
 
 	if namespace == "" {
 		cli, err := github.NewGitHubCLI("")
@@ -68,5 +74,6 @@ func openDeployment(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	openDeploymentCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
+	// openDeploymentCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
+	openDeploymentCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
 }

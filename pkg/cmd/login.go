@@ -9,6 +9,7 @@ import (
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/renkuapi"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var loginCmd = &cobra.Command{
@@ -18,20 +19,15 @@ var loginCmd = &cobra.Command{
 }
 
 func login(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
-
-	url, err := cmd.Flags().GetString("url")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
+	url := viper.GetString("url")
+	namespace := viper.GetString("namespace")
+
 	if url == "" {
-		namespace, err := cmd.Flags().GetString("namespace")
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 		if namespace == "" {
 			cli, err := github.NewGitHubCLI("")
 			if err != nil {
