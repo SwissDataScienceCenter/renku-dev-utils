@@ -15,6 +15,7 @@ var secretKey string
 var secretKeyUsername string
 var secretName string
 var userEmail string
+var yes bool
 
 var rootCmd = &cobra.Command{
 	Use:   "rdu",
