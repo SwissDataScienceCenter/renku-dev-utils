@@ -74,6 +74,5 @@ func openDeployment(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	// openDeploymentCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
 	openDeploymentCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
 }
