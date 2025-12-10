@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,6 +18,7 @@ type RenkuSessionClient struct {
 	baseClient     *ClientWithResponses
 	httpClient     *http.Client
 	requestEditors []RequestEditorFn
+	registryClient *oci.RegistryClient
 }
 
 func NewRenkuSessionClient(apiURL string, options ...RenkuSessionClientOption) (c *RenkuSessionClient, err error) {
@@ -148,16 +148,18 @@ func (c *RenkuSessionClient) UpdateGlobalImages(ctx context.Context, images []st
 
 func (c *RenkuSessionClient) checkImage(ctx context.Context, image string, tag string) error {
 	fullImage := fmt.Sprintf("%s:%s", image, tag)
-	rc, err := oci.NewRegistryClient()
-	if err != nil {
-		return err
+	if c.registryClient == nil {
+		rc, err := oci.NewRegistryClient()
+		if err != nil {
+			return err
+		}
+		c.registryClient = rc
 	}
-	log.Printf("fullImage = %s\n", fullImage)
 	named, err := reference.ParseDockerRef(fullImage)
 	if err != nil {
 		return err
 	}
-	_, err = rc.CheckImage(ctx, named)
+	_, err = c.registryClient.CheckImage(ctx, named)
 	return err
 }
 

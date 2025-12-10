@@ -16,11 +16,16 @@ import (
 )
 
 type RegistryClient struct {
+	// cached authorization headers, keyed by domain
+	auth map[string]string
+
+	// the http client used to query registries
 	client *http.Client
 }
 
 func NewRegistryClient() (rc *RegistryClient, err error) {
 	rc = &RegistryClient{
+		auth:   map[string]string{},
 		client: http.DefaultClient,
 	}
 	return rc, nil
@@ -39,6 +44,10 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 	req.Header.Add("Accept", ociSpec.MediaTypeImageManifest)
 	req.Header.Add("Accept", dockerListSpec.MediaTypeManifestList)
 	req.Header.Add("Accept", dockerSpec.MediaTypeManifest)
+	authHeader, authFound := rc.auth[manifestURL.Host]
+	if authFound {
+		req.Header.Add("Authorization", authHeader)
+	}
 	res, err = rc.client.Do(req)
 	if err != nil {
 		return res, err
@@ -52,12 +61,12 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 		for i := range challenges {
 			to, err := auth.GenerateTokenOptions(ctx, manifestURL.Host, "", "", challenges[i])
 			if err != nil {
-				log.Printf("could not generate token options from challenge: %+v", challenges[i])
+				log.Printf("could not generate token options from challenge: %+v\n", challenges[i])
 				continue
 			}
 			tokenRes, err := auth.FetchToken(ctx, rc.client, http.Header{}, to)
 			if err != nil {
-				log.Printf("could not fetch token: %s", err.Error())
+				log.Printf("could not fetch token: %s\n", err.Error())
 				continue
 			}
 			challenge = &challenges[i]
@@ -82,7 +91,9 @@ func (rc *RegistryClient) CheckImage(ctx context.Context, named reference.Named)
 		case auth.DigestAuth:
 			scheme = "Digest"
 		}
-		req.Header.Add("Authorization", fmt.Sprintf("%s %s", scheme, token))
+		// Save the Authorization header for later requests
+		rc.auth[manifestURL.Host] = fmt.Sprintf("%s %s", scheme, token)
+		req.Header.Add("Authorization", rc.auth[manifestURL.Host])
 		res, err = rc.client.Do(req)
 		if err != nil {
 			return res, err
