@@ -18,7 +18,7 @@ require (
 	github.com/zalando/go-keyring v0.2.6
 	golang.design/x/clipboard v0.7.1
 	k8s.io/api v0.34.2
-	k8s.io/apimachinery v0.34.2
+	k8s.io/apimachinery v0.34.3
 	k8s.io/client-go v0.34.2
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 )
