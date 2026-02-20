@@ -324,8 +324,9 @@ func (auth *RenkuApiAuth) get(ctx context.Context, url string, result any) (resp
 		return resp, err
 	}
 
+	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	var parseErr error
-	if resp.Header.Get("Content-Type") == jsonContentType {
+	if contentType == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else {
 		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
@@ -351,8 +352,9 @@ func (auth *RenkuApiAuth) postForm(ctx context.Context, url string, data url.Val
 		return resp, err
 	}
 
+	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	var parseErr error
-	if resp.Header.Get("Content-Type") == jsonContentType {
+	if contentType == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else {
 		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
