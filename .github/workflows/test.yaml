@@ -46,6 +46,13 @@ jobs:
       - name: Build renku-dev-utils
         run: make rdu
 
+      - name: Install libraries for ubuntu
+        run: |
+          sudo apt install libx11-dev
+      
+      - name: Run tests with x11
+        run: make test
+
   lint:
     runs-on: ubuntu-24.04
     steps:
