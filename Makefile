@@ -16,7 +16,18 @@ else
 VERSION := $(BRANCH).$(GIT_COMMIT_HASH)
 DIRTY := "dev"
 endif
+# X11 support
+X11 := 0
+ifeq ($(shell go env GOOS),linux)
+ifeq ($(shell ldconfig -p | grep X11 || echo ""))
+X11 := 1
+endif
+endif
 LDFLAGS=--ldflags "-s -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.Version=$(VERSION) -X github.com/SwissDataScienceCenter/renku-dev-utils/pkg/version.VersionSuffix=$(DIRTY)"
+TAGS=
+ifeq ($(X11),1)
+TAGS=-tags=x11
+endif
 
 .PHONY: all
 all: help
@@ -29,6 +40,7 @@ vars:  ## Show the Makefile vars
 	@echo GIT_TAG="'$(GIT_TAG)'"
 	@echo VERSION="'$(VERSION)'"
 	@echo DIRTY="'$(DIRTY)'"
+	@echo X11="'$(X11)'"
 
 .PHONY: rdu
 rdu: build/renku-dev-utils  ## Build and install renku-dev-utils
@@ -38,7 +50,7 @@ rdu: build/renku-dev-utils  ## Build and install renku-dev-utils
 
 .PHONY: build/renku-dev-utils
 build/renku-dev-utils:
-	go build -v -o build/ $(LDFLAGS)
+	go build -v -o build/ $(TAGS) $(LDFLAGS)
 
 # From the operator sdk Makefile
 # The help target prints out all targets with their descriptions organized
@@ -75,7 +87,7 @@ lint:  ## Lint source files with `golangci-lint run`
 
 .PHONY: test
 test:  ## Run go tests
-	go test -v ./...
+	go test -v $(TAGS) ./...
 
 ##@ Code generation
 
