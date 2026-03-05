@@ -26,6 +26,7 @@ jobs:
 
       - name: Print environment
         run: |
+          ldconfig -p | grep X11
           which go
           go env
           make vars
