@@ -73,6 +73,10 @@ check-vet:  ## Check source files with `go vet`
 lint:  ## Lint source files with `golangci-lint run`
 	golangci-lint run
 
+.PHONY: test
+test:  ## Run go tests
+	go test ./...
+
 ##@ Code generation
 
 .PHONY: renku-users-apispec
