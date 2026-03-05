@@ -75,7 +75,7 @@ lint:  ## Lint source files with `golangci-lint run`
 
 .PHONY: test
 test:  ## Run go tests
-	go test ./...
+	go test -v ./...
 
 ##@ Code generation
 
