@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/clipboard"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.design/x/clipboard"
 )
 
 var copyKeycloakAdminPasswordCmd = &cobra.Command{
@@ -61,14 +61,20 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := clipboard.Init(); err != nil {
+	supported, err := clipboard.Init()
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	if !supported {
+		fmt.Fprintf(os.Stderr, "Warning: clipboard not supported!")
+	}
 
-	clipboard.Write(clipboard.FmtText, secretValue)
-	fmt.Printf("Copied Keycloak admin password into the clipboard")
-	fmt.Println()
+	clipboard.WriteStr(string(secretValue))
+	if supported {
+		fmt.Printf("Copied Keycloak admin password into the clipboard")
+		fmt.Println()
+	}
 }
 
 func init() {
