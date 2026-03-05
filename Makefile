@@ -19,7 +19,7 @@ endif
 # X11 support
 X11 := 0
 ifeq ($(shell go env GOOS),linux)
-ifeq ($(shell ldconfig -p | grep X11 || echo ""))
+ifneq ($(shell ldconfig -p | grep X11 || echo ""),)
 X11 := 1
 endif
 endif
