@@ -10,7 +10,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/getkin/kin-openapi v0.135.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/oapi-codegen/runtime v1.3.1
+	github.com/oapi-codegen/runtime v1.4.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
