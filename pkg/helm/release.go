@@ -7,7 +7,7 @@ import (
 )
 
 func (cli *HelmCLI) ListReleases(ctx context.Context, namespace string) (releases []string, err error) {
-	out, err := cli.RunCmd(ctx, "list", "--namespace", namespace, "--all", "--output", "json")
+	out, err := cli.RunCmd(ctx, "list", "--namespace", namespace, "--output", "json")
 	if err != nil {
 		return nil, err
 	}
