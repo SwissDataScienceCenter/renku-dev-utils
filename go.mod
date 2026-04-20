@@ -5,7 +5,7 @@ go 1.26.1
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
 require (
-	github.com/containerd/containerd/v2 v2.2.2
+	github.com/containerd/containerd/v2 v2.2.3
 	github.com/distribution/distribution/v3 v3.1.0
 	github.com/distribution/reference v0.6.0
 	github.com/getkin/kin-openapi v0.135.0
