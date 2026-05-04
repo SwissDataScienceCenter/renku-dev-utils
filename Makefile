@@ -93,3 +93,8 @@ pkg/renkuapi/users/users_gen.go: pkg/renkuapi/users/api.spec.yaml
 
 pkg/renkuapi/session/session_gen.go: pkg/renkuapi/session/api.spec.yaml
 	go generate pkg/renkuapi/session/session.go
+
+.PHONY: cleanup-generate
+cleanup-generate:  ## Remove generated files
+	rm pkg/renkuapi/users/users_gen.go || true
+	rm pkg/renkuapi/session/session_gen.go || true
