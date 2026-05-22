@@ -40,6 +40,9 @@ jobs:
       - name: Check vet
         run: make check-vet
 
+      - name: Run tests
+        run: make test
+
       - name: Build renku-dev-utils
         run: make rdu
 

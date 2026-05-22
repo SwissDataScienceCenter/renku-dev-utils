@@ -6,17 +6,18 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckImage(t *testing.T) {
 	image := "python:3.12"
 	named, err := reference.ParseDockerRef(image)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	rc, err := NewRegistryClient()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	res, err := rc.CheckImage(t.Context(), named)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
@@ -88,9 +89,9 @@ func TestGetManifestURLForImage(t *testing.T) {
 			t.Log(test.in)
 
 			named, err := reference.ParseDockerRef(test.in)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			result, err := GetManifestURLForImage(named)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, test.out, result.String())
 		})
 	}
