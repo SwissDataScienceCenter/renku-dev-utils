@@ -26,8 +26,9 @@ func (client *KeycloakClient) GetJSON(ctx context.Context, url string, result an
 		return resp, err
 	}
 
+	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	var parseErr error
-	if resp.Header.Get("Content-Type") == jsonContentType {
+	if contentType == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else {
 		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))
@@ -60,8 +61,9 @@ func (client *KeycloakClient) PostJSON(ctx context.Context, url string, body any
 		return resp, err
 	}
 
+	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	var parseErr error
-	if resp.Header.Get("Content-Type") == jsonContentType {
+	if contentType == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else if resp.StatusCode == 204 {
 		// No content
@@ -91,8 +93,9 @@ func (client *KeycloakClient) PostForm(ctx context.Context, url string, data url
 		return resp, err
 	}
 
+	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	var parseErr error
-	if resp.Header.Get("Content-Type") == jsonContentType {
+	if contentType == jsonContentType {
 		parseErr = tryParseResponse(resp, result)
 	} else {
 		return resp, fmt.Errorf("expected '%s' but got response with content type '%s'", jsonContentType, resp.Header.Get("Content-Type"))

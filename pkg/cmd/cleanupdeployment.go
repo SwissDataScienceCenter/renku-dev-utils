@@ -12,8 +12,9 @@ import (
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
 	ns "github.com/SwissDataScienceCenter/renku-dev-utils/pkg/namespace"
 	"github.com/spf13/cobra"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var cleanupDeploymentCmd = &cobra.Command{
@@ -23,7 +24,14 @@ var cleanupDeploymentCmd = &cobra.Command{
 }
 
 func cleanupDeployment(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	namespace := viper.GetString("namespace")
+	deleteNamespace := viper.GetBool("delete-namespace")
+	yes := viper.GetBool("yes")
 
 	if namespace == "" {
 		cli, err := github.NewGitHubCLI("")
@@ -129,9 +137,9 @@ func cleanupDeployment(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	cleanupDeploymentCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "k8s namespace")
-	cleanupDeploymentCmd.Flags().BoolVar(&deleteNamespace, "delete-namespace", false, "if set, the namespace will be deleted")
-	cleanupDeploymentCmd.Flags().BoolVarP(&yes, "yes", "y", false, "skip confirmation prompt")
+	cleanupDeploymentCmd.Flags().StringP("namespace", "n", "", "k8s namespace")
+	cleanupDeploymentCmd.Flags().Bool("delete-namespace", false, "if set, the namespace will be deleted")
+	cleanupDeploymentCmd.Flags().BoolP("yes", "y", false, "skip confirmation prompt")
 }
 
 func askForConfirmation(question string) (response bool, err error) {

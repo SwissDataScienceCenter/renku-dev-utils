@@ -4,23 +4,14 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-// Flags
-
-var deleteNamespace bool
-var namespace string
-var renkuRealm string
-var secretKey string
-var secretKeyUsername string
-var secretName string
-var userEmail string
-var yes bool
-
 var rootCmd = &cobra.Command{
-	Use:   "rdu",
-	Short: "renku-dev-utils is a dev utility CLI",
-	RunE:  runRoot,
+	Use:               "rdu",
+	Short:             "renku-dev-utils is a dev utility CLI",
+	PersistentPreRunE: preRunRoot,
+	RunE:              runRoot,
 }
 
 func Execute() error {
@@ -31,9 +22,14 @@ func runRoot(cmd *cobra.Command, args []string) error {
 	return cmd.Help()
 }
 
+func preRunRoot(cmd *cobra.Command, args []string) error {
+	return viper.BindPFlags(cmd.Flags())
+}
+
 func init() {
 	rootCmd.AddCommand(cleanupDeploymentCmd)
 	rootCmd.AddCommand(copyKeycloakAdminPasswordCmd)
+	rootCmd.AddCommand(listDeploymentsCmd)
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(logoutCmd)
 	rootCmd.AddCommand(makeMeAdminCmd)

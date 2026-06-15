@@ -1,9 +1,16 @@
 package github
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+)
 
 // Maps repositories to namespace templates
 var repoToNamespaceTemplateMap map[string]string
+
+// Deployment namespace regexes
+var namespaceRegexes []namespaceRegex
 
 // Contains the list of Renku global images
 var globalImagesSlice []string
@@ -20,9 +27,28 @@ func GetGlobalImages() []string {
 	return globalImagesSlice[:]
 }
 
+func MatchDeploymentNamespace(namespace string) (repository string, pr int) {
+	for i := range namespaceRegexes {
+		res := namespaceRegexes[i].regex.FindStringSubmatch(namespace)
+		if res != nil {
+			pr, err := strconv.Atoi(res[1])
+			if err == nil && pr > 0 {
+				return namespaceRegexes[i].repository, pr
+			}
+		}
+	}
+	return "", 0
+}
+
+type namespaceRegex struct {
+	regex      *regexp.Regexp
+	repository string
+}
+
 func init() {
 	initRepoToNamespaceTemplateMap()
 	initGlobalImagesSlice()
+	initNamespaceRegexes()
 }
 
 func initRepoToNamespaceTemplateMap() {
@@ -31,6 +57,32 @@ func initRepoToNamespaceTemplateMap() {
 		"SwissDataScienceCenter/renku":               "ci-renku-%d",
 		"SwissDataScienceCenter/renku-data-services": "renku-ci-ds-%d",
 		"SwissDataScienceCenter/renku-ui":            "renku-ci-ui-%d",
+		"SwissDataScienceCenter/renku-gateway":       "renku-ci-gw-%d",
+	}
+}
+
+func initNamespaceRegexes() {
+	namespaceRegexes = []namespaceRegex{
+		{
+			regex:      regexp.MustCompile(`^renku-ci-am-(\d+)$`),
+			repository: "SwissDataScienceCenter/amalthea",
+		},
+		{
+			regex:      regexp.MustCompile(`^ci-renku-(\d+)$`),
+			repository: "SwissDataScienceCenter/renku",
+		},
+		{
+			regex:      regexp.MustCompile(`^renku-ci-ds-(\d+)$`),
+			repository: "SwissDataScienceCenter/renku-data-services",
+		},
+		{
+			regex:      regexp.MustCompile(`^renku-ci-ui-(\d+)$`),
+			repository: "SwissDataScienceCenter/renku-ui",
+		},
+		{
+			regex:      regexp.MustCompile(`^renku-ci-gw-(\d+)$`),
+			repository: "SwissDataScienceCenter/renku-gateway",
+		},
 	}
 }
 

@@ -18,14 +18,17 @@ var namespaceCmd = &cobra.Command{
 }
 
 func namespaceFn(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	cli, err := github.NewGitHubCLI("")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	namespace, err = ns.FindCurrentNamespace(ctx, cli)
+	namespace, err := ns.FindCurrentNamespace(ctx, cli)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -17,13 +17,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      
+
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24.2'
+          go-version: "1.26"
           check-latest: true
-      
+
       - name: Install libraries for ubuntu
         run: |
           sudo apt install libx11-dev
@@ -40,26 +40,57 @@ jobs:
       - name: Check vet
         run: make check-vet
 
+      - name: Run tests
+        run: make test
+
       - name: Build renku-dev-utils
         run: make rdu
+
+  test-generate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          check-latest: true
+
+      - name: Install libraries for ubuntu
+        run: |
+          sudo apt install libx11-dev
+
+      - name: Print environment
+        run: |
+          which go
+          go env
+          make vars
+
+      - name: Test code generation
+        run: |
+          make cleanup-generate
+          make generate
+          make rdu
 
   lint:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      
+
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24.2'
+          go-version: "1.26"
           check-latest: true
 
       - name: Install libraries for ubuntu
         run: |
           sudo apt install libx11-dev
-      
-      - name: golangci-lint
+
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1
+          version: v2.11
