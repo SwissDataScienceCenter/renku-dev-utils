@@ -178,7 +178,10 @@ class CIDeploymentsManager:
                 else:
                     dep.pr_is_open = True
             else:
-                filtered.append(dep)
+                logger.info(
+                    f"Skipping PR-based cleanup for {dep.namespace}: "
+                    "no repo mapping or PR number (age filter still applies)"
+                )
         return filtered
 
     def filter_exempt_namespaces(self, deployments):
