@@ -131,7 +131,7 @@ class CIDeploymentsManager:
         self.deployments = []
 
     def get_deployments(self):
-        command = "helm list --all-namespaces -o json"
+        command = "helm list --all-namespaces --all -o json"
         shell_exec = ShellExecution(command)
         stdout, stderr, returncode = shell_exec.execute(dry_run=False)
 
