@@ -8,7 +8,7 @@ require (
 	github.com/containerd/containerd/v2 v2.3.3
 	github.com/distribution/distribution/v3 v3.1.1
 	github.com/distribution/reference v0.6.0
-	github.com/getkin/kin-openapi v0.142.0
+	github.com/getkin/kin-openapi v0.145.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/opencontainers/image-spec v1.1.1
