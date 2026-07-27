@@ -1,0 +1,101 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "renku-ci-cleanup.fullname" . }}
+  labels:
+    {{- include "renku-ci-cleanup.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "renku-ci-cleanup.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: {{ .Values.cronJob.restartPolicy }}
+          serviceAccountName: {{ include "renku-ci-cleanup.serviceAccountName" . }}
+          containers:
+          - name: cleanup
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command:
+            - python3
+            - /scripts/cleanup.py
+            env:
+            - name: MAX_AGE_HOURS
+              value: {{ .Values.cleanup.maxAge | quote }}
+            - name: EXEMPTION_LABEL
+              value: {{ .Values.cleanup.exemptionLabel | quote }}
+            - name: ENFORCE_NAME_PATTERNS
+              value: {{ .Values.cleanup.enforceNamePatterns | quote }}
+            {{- if .Values.cleanup.enforceNamePatterns }}
+            - name: NAMESPACE_PATTERNS
+              value: {{ join " " .Values.cleanup.namespacePatterns | quote }}
+            {{- end }}
+            - name: PR_CLEANUP_ENABLED
+              value: {{ .Values.cleanup.prCleanup.enabled | quote }}
+            {{- if .Values.cleanup.prCleanup.enabled }}
+            - name: PR_REPOSITORIES
+              value: "{{- range $i, $repo := .Values.cleanup.prCleanup.repositories }}{{- if $i }} {{ end }}{{ $repo.namespacePattern }}:{{ $repo.repo }}{{- end }}"
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renku-ci-cleanup.fullname" . }}-github-token
+                  key: token
+                  optional: true
+            {{- end }}
+            {{- if .Values.cleanup.dryRun }}
+            - name: DRY_RUN
+              value: "true"
+            {{- end }}
+            {{- if .Values.debug }}
+            {{- if .Values.debug.enabled }}
+            - name: DEBUG_MODE
+              value: "true"
+            {{- end }}
+            {{- end }}
+            volumeMounts:
+            - name: cleanup-script
+              mountPath: /scripts
+              readOnly: true
+            - name: service-account-token
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+            resources:
+              {{- toYaml .Values.resources | nindent 14 }}
+          volumes:
+          - name: cleanup-script
+            configMap:
+              name: {{ include "renku-ci-cleanup.fullname" . }}-script
+              defaultMode: 0755
+          - name: service-account-token
+            projected:
+              sources:
+              - serviceAccountToken:
+                  path: token
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                  - key: ca.crt
+                    path: ca.crt
+              - downwardAPI:
+                  items:
+                  - path: namespace
+                    fieldRef:
+                      fieldPath: metadata.namespace
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
