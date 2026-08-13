@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "renku-ci-cleanup.fullname" . }}-script
+  labels:
+    {{- include "renku-ci-cleanup.labels" . | nindent 4 }}
+data:
+{{ (.Files.Glob "cleanup.py").AsConfig | indent 2 }}
