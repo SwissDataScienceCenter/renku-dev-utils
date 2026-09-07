@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/github"
 	"github.com/SwissDataScienceCenter/renku-dev-utils/pkg/k8s"
@@ -66,7 +67,12 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	clipboard.Write(clipboard.FmtText, secretValue)
+	clipboardCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	if _, err = clipboard.Write(clipboardCtx, clipboard.FmtText, secretValue); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	fmt.Printf("Copied Keycloak admin password into the clipboard")
 	fmt.Println()
 }
