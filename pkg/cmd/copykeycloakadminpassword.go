@@ -69,7 +69,10 @@ func runCopyKeycloakAdminPassword(cmd *cobra.Command, args []string) {
 
 	clipboardCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	clipboard.Write(clipboardCtx, clipboard.FmtText, secretValue)
+	if _, err = clipboard.Write(clipboardCtx, clipboard.FmtText, secretValue); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	fmt.Printf("Copied Keycloak admin password into the clipboard")
 	fmt.Println()
 }
