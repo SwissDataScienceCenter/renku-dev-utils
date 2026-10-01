@@ -1,6 +1,6 @@
 module github.com/SwissDataScienceCenter/renku-dev-utils
 
-go 1.26.8
+go 1.27.1
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
