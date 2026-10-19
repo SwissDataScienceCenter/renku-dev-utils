@@ -464,52 +464,50 @@ components:
         - $ref: "#/components/schemas/BuildParametersPost"
     EnvironmentPost:
       description: Data required to create a session environment
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/SessionName"
-        description:
-          $ref: "#/components/schemas/Description"
-        container_image:
-          $ref: "#/components/schemas/ContainerImage"
-        default_url:
-          allOf:
-            - $ref: "#/components/schemas/DefaultUrl"
-          default: /lab
-        uid:
-          allOf:
-            - $ref: "#/components/schemas/EnvironmentUid"
-          default: 1000
-        gid:
-          allOf:
-            - $ref: "#/components/schemas/EnvironmentGid"
-          default: 1000
-        working_directory:
-          $ref: "#/components/schemas/EnvironmentWorkingDirectory"
-        mount_directory:
-          $ref: "#/components/schemas/EnvironmentMountDirectory"
-        port:
-          allOf:
-            - $ref: "#/components/schemas/EnvironmentPort"
-          default: 8080
-        command:
-          $ref: "#/components/schemas/EnvironmentCommand"
-        args:
-          $ref: "#/components/schemas/EnvironmentArgs"
-        is_archived:
-          allOf:
-            - $ref: "#/components/schemas/IsArchived"
-          default: false
-        environment_image_source:
-          $ref: "#/components/schemas/EnvironmentImageSourceImage"
-        strip_path_prefix:
-          allOf:
-            - $ref: "#/components/schemas/StripPathPrefix"
-          default: false
-      required:
-        - name
-        - container_image
-        - environment_image_source
+      allOf:
+        - $ref: "#/components/schemas/CommandAndArgs"
+        - type: object
+          properties:
+            name:
+              $ref: "#/components/schemas/SessionName"
+            description:
+              $ref: "#/components/schemas/Description"
+            container_image:
+              $ref: "#/components/schemas/ContainerImage"
+            default_url:
+              allOf:
+                - $ref: "#/components/schemas/DefaultUrl"
+              default: /lab
+            uid:
+              allOf:
+                - $ref: "#/components/schemas/EnvironmentUid"
+              default: 1000
+            gid:
+              allOf:
+                - $ref: "#/components/schemas/EnvironmentGid"
+              default: 1000
+            working_directory:
+              $ref: "#/components/schemas/EnvironmentWorkingDirectory"
+            mount_directory:
+              $ref: "#/components/schemas/EnvironmentMountDirectory"
+            port:
+              allOf:
+                - $ref: "#/components/schemas/EnvironmentPort"
+              default: 8080
+            is_archived:
+              allOf:
+                - $ref: "#/components/schemas/IsArchived"
+              default: false
+            environment_image_source:
+              $ref: "#/components/schemas/EnvironmentImageSourceImage"
+            strip_path_prefix:
+              allOf:
+                - $ref: "#/components/schemas/StripPathPrefix"
+              default: false
+          required:
+            - name
+            - container_image
+            - environment_image_source
     EnvironmentPatchInLauncher:
       allOf:
         - $ref: "#/components/schemas/EnvironmentPatch"
@@ -522,36 +520,40 @@ components:
             build_parameters:
               $ref: "#/components/schemas/BuildParametersPatch"
     EnvironmentPatch:
-      type: object
-      description: Update a session environment
-      additionalProperties: false
-      properties:
-        name:
-          $ref: "#/components/schemas/SessionName"
-        description:
-          $ref: "#/components/schemas/Description"
-        container_image:
-          $ref: "#/components/schemas/ContainerImage"
-        default_url:
-          $ref: "#/components/schemas/DefaultUrl"
-        uid:
-          $ref: "#/components/schemas/EnvironmentUid"
-        gid:
-          $ref: "#/components/schemas/EnvironmentGid"
-        working_directory:
-          $ref: "#/components/schemas/EnvironmentWorkingDirectoryPatch"
-        mount_directory:
-          $ref: "#/components/schemas/EnvironmentMountDirectoryPatch"
-        port:
-          $ref: "#/components/schemas/EnvironmentPort"
-        command:
-          $ref: "#/components/schemas/EnvironmentPatchCommand"
-        args:
-          $ref: "#/components/schemas/EnvironmentPatchArgs"
-        is_archived:
-          $ref: "#/components/schemas/IsArchivedPatch"
-        strip_path_prefix:
-          $ref: "#/components/schemas/StripPathPrefixPatch"
+      allOf:
+        - $ref: "#/components/schemas/CommandAndArgs"
+        - type: object
+          description: Update a session environment
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/SessionName"
+            description:
+              $ref: "#/components/schemas/Description"
+            container_image:
+              $ref: "#/components/schemas/ContainerImage"
+            default_url:
+              $ref: "#/components/schemas/DefaultUrl"
+            uid:
+              $ref: "#/components/schemas/EnvironmentUid"
+            gid:
+              $ref: "#/components/schemas/EnvironmentGid"
+            working_directory:
+              $ref: "#/components/schemas/EnvironmentWorkingDirectoryPatch"
+            mount_directory:
+              $ref: "#/components/schemas/EnvironmentMountDirectoryPatch"
+            port:
+              $ref: "#/components/schemas/EnvironmentPort"
+            is_archived:
+              $ref: "#/components/schemas/IsArchivedPatch"
+            strip_path_prefix:
+              $ref: "#/components/schemas/StripPathPrefixPatch"
+    LauncherType:
+      type: string
+      enum:
+        - interactive
+        - non-interactive
+        - app
     SessionLaunchersList:
       description: A list of Renku session launchers
       type: array
@@ -580,6 +582,8 @@ components:
           $ref: "#/components/schemas/DiskStorage"
         env_variables:
           $ref: "#/components/schemas/EnvVariables"
+        launcher_type:
+          $ref: "#/components/schemas/LauncherType"
       required:
         - id
         - project_id
@@ -587,6 +591,7 @@ components:
         - creation_date
         - environment
         - resource_class_id
+        - launcher_type
     SessionLauncherPost:
       description: Data required to create a session launcher
       type: object
@@ -604,6 +609,9 @@ components:
           $ref: "#/components/schemas/DiskStorage"
         env_variables:
           $ref: "#/components/schemas/EnvVariables"
+        launcher_type:
+          $ref: "#/components/schemas/LauncherType"
+          default: interactive
         environment:
           oneOf:
             - $ref: "#/components/schemas/EnvironmentPostInLauncher"
@@ -612,6 +620,7 @@ components:
         - name
         - project_id
         - environment
+        - launcher_type
       example:
         project_id: 01AN4Z79ZS5XN0F25N3DB94T4R
         name: Renku R Session
@@ -619,7 +628,7 @@ components:
           id: 01AN4Z79ZS6XX96588FDX0H099
     SessionLauncherPatch:
       type: object
-      description: Update a session launcher
+      description: Update a session launcher. For non-interactive launchers, a `command` is required.
       additionalProperties: false
       properties:
         name:
@@ -732,28 +741,31 @@ components:
       maxLength: 500
     BuildParameters:
       description: Build parameters
-      type: object
-      additionalProperties: false
-      properties:
-        repository:
-          $ref: "#/components/schemas/Repository"
-        platforms:
-          $ref: "#/components/schemas/BuildPlatforms"
-        builder_variant:
-          $ref: "#/components/schemas/BuilderVariant"
-        frontend_variant:
-          $ref: "#/components/schemas/FrontendVariant"
-        repository_revision:
-          $ref: "#/components/schemas/RepositoryRevision"
-        context_dir:
-          $ref: "#/components/schemas/BuildContextDir"
-      required:
-        - repository
-        - builder_variant
-        - frontend_variant
+      allOf:
+        - ref: "#/components/schemas/CommandAndArgs"
+        - type: object
+          additionalProperties: false
+          properties:
+            repository:
+              $ref: "#/components/schemas/Repository"
+            platforms:
+              $ref: "#/components/schemas/BuildPlatforms"
+            builder_variant:
+              $ref: "#/components/schemas/BuilderVariant"
+            frontend_variant:
+              $ref: "#/components/schemas/FrontendVariant"
+            repository_revision:
+              $ref: "#/components/schemas/RepositoryRevision"
+            context_dir:
+              $ref: "#/components/schemas/BuildContextDir"
+          required:
+            - repository
+            - builder_variant
+            - frontend_variant
     BuildParametersPost:
       allOf:
         - $ref: "#/components/schemas/BuildParameters"
+        - $ref: "#/components/schemas/CommandAndArgs"
         - type: object
           properties:
             environment_image_source:
@@ -776,13 +788,19 @@ components:
           $ref: "#/components/schemas/RepositoryRevisionPatch"
         context_dir:
           $ref: "#/components/schemas/BuildContextDirPatch"
+    CommandAndArgs:
+      description: The command and arguments.
+      type: object
+      properties:
+        command:
+          $ref: "#/components/schemas/EnvironmentCommand"
+        args:
+          $ref: "#/components/schemas/EnvironmentArgs"
     ContainerImage:
       description: A container image
       type: string
       maxLength: 500
-      # NOTE: regex for an image name, optionally with a tag or sha256 specified
-      # based on https://github.com/opencontainers/distribution-spec/blob/main/spec.md
-      pattern: "^[a-z0-9]+((\\.|_|__|-+)[a-z0-9]+)*(\\/[a-z0-9]+((\\.|_|__|-+)[a-z0-9]+)*)*(:[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}|@sha256:[a-fA-F0-9]{64}){0,1}$"
+      minLength: 3
       example: renku/renkulab-py:3.10-0.18.1
     Repository:
       description: A git repository URL
