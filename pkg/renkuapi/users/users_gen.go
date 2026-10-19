@@ -74,6 +74,27 @@ type ProjectSlug = string
 // ProjectSlugResponse The slug used to identify a project
 type ProjectSlugResponse = string
 
+// SSHKey defines model for SSHKey.
+type SSHKey struct {
+	CreatedAt   time.Time `json:"created_at"`
+	Fingerprint string    `json:"fingerprint"`
+
+	// Id ULID identifier
+	Id        Ulid    `json:"id"`
+	KeyType   string  `json:"key_type"`
+	Name      *string `json:"name,omitempty"`
+	PublicKey string  `json:"public_key"`
+}
+
+// SSHKeyPost defines model for SSHKeyPost.
+type SSHKeyPost struct {
+	Name      *string `json:"name,omitempty"`
+	PublicKey string  `json:"public_key"`
+}
+
+// SSHKeysList defines model for SSHKeysList.
+type SSHKeysList = []SSHKey
+
 // SecretDefaultFilename Filename to give to this secret when mounted in Renku 1.0 sessions
 type SecretDefaultFilename = string
 
@@ -266,6 +287,9 @@ type PostUserSecretsJSONRequestBody = SecretPost
 // PatchUserSecretsSecretIdJSONRequestBody defines body for PatchUserSecretsSecretId for application/json ContentType.
 type PatchUserSecretsSecretIdJSONRequestBody = SecretPatch
 
+// PostUserSshKeysJSONRequestBody defines body for PostUserSshKeys for application/json ContentType.
+type PostUserSshKeysJSONRequestBody = SSHKeyPost
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -383,6 +407,20 @@ type ClientInterface interface {
 	PatchUserSecretsSecretIdWithBody(ctx context.Context, secretId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchUserSecretsSecretId(ctx context.Context, secretId Ulid, body PatchUserSecretsSecretIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUserSshKeys request
+	GetUserSshKeys(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostUserSshKeysWithBody request with any body
+	PostUserSshKeysWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostUserSshKeys(ctx context.Context, body PostUserSshKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteUserSshKeysKeyId request
+	DeleteUserSshKeysKeyId(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUserSshKeysKeyId request
+	GetUserSshKeysKeyId(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetUsers request
 	GetUsers(ctx context.Context, params *GetUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -579,6 +617,66 @@ func (c *Client) PatchUserSecretsSecretIdWithBody(ctx context.Context, secretId 
 
 func (c *Client) PatchUserSecretsSecretId(ctx context.Context, secretId Ulid, body PatchUserSecretsSecretIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPatchUserSecretsSecretIdRequest(c.Server, secretId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUserSshKeys(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserSshKeysRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUserSshKeysWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUserSshKeysRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUserSshKeys(ctx context.Context, body PostUserSshKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUserSshKeysRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteUserSshKeysKeyId(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteUserSshKeysKeyIdRequest(c.Server, keyId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUserSshKeysKeyId(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserSshKeysKeyIdRequest(c.Server, keyId)
 	if err != nil {
 		return nil, err
 	}
@@ -1102,6 +1200,141 @@ func NewPatchUserSecretsSecretIdRequestWithBody(server string, secretId Ulid, co
 	return req, nil
 }
 
+// NewGetUserSshKeysRequest generates requests for GetUserSshKeys
+func NewGetUserSshKeysRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/ssh_keys")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostUserSshKeysRequest calls the generic PostUserSshKeys builder with application/json body
+func NewPostUserSshKeysRequest(server string, body PostUserSshKeysJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostUserSshKeysRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostUserSshKeysRequestWithBody generates requests for PostUserSshKeys with any type of body
+func NewPostUserSshKeysRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/ssh_keys")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteUserSshKeysKeyIdRequest generates requests for DeleteUserSshKeysKeyId
+func NewDeleteUserSshKeysKeyIdRequest(server string, keyId Ulid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "key_id", keyId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/ssh_keys/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetUserSshKeysKeyIdRequest generates requests for GetUserSshKeysKeyId
+func NewGetUserSshKeysKeyIdRequest(server string, keyId Ulid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "key_id", keyId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/ssh_keys/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetUsersRequest generates requests for GetUsers
 func NewGetUsersRequest(server string, params *GetUsersParams) (*http.Request, error) {
 	var err error
@@ -1338,6 +1571,20 @@ type ClientWithResponsesInterface interface {
 	PatchUserSecretsSecretIdWithBodyWithResponse(ctx context.Context, secretId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchUserSecretsSecretIdResponse, error)
 
 	PatchUserSecretsSecretIdWithResponse(ctx context.Context, secretId Ulid, body PatchUserSecretsSecretIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchUserSecretsSecretIdResponse, error)
+
+	// GetUserSshKeysWithResponse request
+	GetUserSshKeysWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUserSshKeysResponse, error)
+
+	// PostUserSshKeysWithBodyWithResponse request with any body
+	PostUserSshKeysWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUserSshKeysResponse, error)
+
+	PostUserSshKeysWithResponse(ctx context.Context, body PostUserSshKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUserSshKeysResponse, error)
+
+	// DeleteUserSshKeysKeyIdWithResponse request
+	DeleteUserSshKeysKeyIdWithResponse(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*DeleteUserSshKeysKeyIdResponse, error)
+
+	// GetUserSshKeysKeyIdWithResponse request
+	GetUserSshKeysKeyIdWithResponse(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*GetUserSshKeysKeyIdResponse, error)
 
 	// GetUsersWithResponse request
 	GetUsersWithResponse(ctx context.Context, params *GetUsersParams, reqEditors ...RequestEditorFn) (*GetUsersResponse, error)
@@ -1756,6 +2003,131 @@ func (r PatchUserSecretsSecretIdResponse) ContentType() string {
 	return ""
 }
 
+type GetUserSshKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SSHKeysList
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserSshKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserSshKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetUserSshKeysResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PostUserSshKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *SSHKey
+	JSON409      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PostUserSshKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostUserSshKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostUserSshKeysResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteUserSshKeysKeyIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteUserSshKeysKeyIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteUserSshKeysKeyIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteUserSshKeysKeyIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetUserSshKeysKeyIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SSHKey
+	JSON404      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserSshKeysKeyIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserSshKeysKeyIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetUserSshKeysKeyIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetUsersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2018,6 +2390,50 @@ func (c *ClientWithResponses) PatchUserSecretsSecretIdWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParsePatchUserSecretsSecretIdResponse(rsp)
+}
+
+// GetUserSshKeysWithResponse request returning *GetUserSshKeysResponse
+func (c *ClientWithResponses) GetUserSshKeysWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUserSshKeysResponse, error) {
+	rsp, err := c.GetUserSshKeys(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserSshKeysResponse(rsp)
+}
+
+// PostUserSshKeysWithBodyWithResponse request with arbitrary body returning *PostUserSshKeysResponse
+func (c *ClientWithResponses) PostUserSshKeysWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUserSshKeysResponse, error) {
+	rsp, err := c.PostUserSshKeysWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUserSshKeysResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostUserSshKeysWithResponse(ctx context.Context, body PostUserSshKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUserSshKeysResponse, error) {
+	rsp, err := c.PostUserSshKeys(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUserSshKeysResponse(rsp)
+}
+
+// DeleteUserSshKeysKeyIdWithResponse request returning *DeleteUserSshKeysKeyIdResponse
+func (c *ClientWithResponses) DeleteUserSshKeysKeyIdWithResponse(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*DeleteUserSshKeysKeyIdResponse, error) {
+	rsp, err := c.DeleteUserSshKeysKeyId(ctx, keyId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteUserSshKeysKeyIdResponse(rsp)
+}
+
+// GetUserSshKeysKeyIdWithResponse request returning *GetUserSshKeysKeyIdResponse
+func (c *ClientWithResponses) GetUserSshKeysKeyIdWithResponse(ctx context.Context, keyId Ulid, reqEditors ...RequestEditorFn) (*GetUserSshKeysKeyIdResponse, error) {
+	rsp, err := c.GetUserSshKeysKeyId(ctx, keyId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserSshKeysKeyIdResponse(rsp)
 }
 
 // GetUsersWithResponse request returning *GetUsersResponse
@@ -2492,6 +2908,145 @@ func ParsePatchUserSecretsSecretIdResponse(rsp *http.Response) (*PatchUserSecret
 	return response, nil
 }
 
+// ParseGetUserSshKeysResponse parses an HTTP response from a GetUserSshKeysWithResponse call
+func ParseGetUserSshKeysResponse(rsp *http.Response) (*GetUserSshKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserSshKeysResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SSHKeysList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostUserSshKeysResponse parses an HTTP response from a PostUserSshKeysWithResponse call
+func ParsePostUserSshKeysResponse(rsp *http.Response) (*PostUserSshKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostUserSshKeysResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest SSHKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteUserSshKeysKeyIdResponse parses an HTTP response from a DeleteUserSshKeysKeyIdWithResponse call
+func ParseDeleteUserSshKeysKeyIdResponse(rsp *http.Response) (*DeleteUserSshKeysKeyIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteUserSshKeysKeyIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUserSshKeysKeyIdResponse parses an HTTP response from a GetUserSshKeysKeyIdWithResponse call
+func ParseGetUserSshKeysKeyIdResponse(rsp *http.Response) (*GetUserSshKeysKeyIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserSshKeysKeyIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SSHKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetUsersResponse parses an HTTP response from a GetUsersWithResponse call
 func ParseGetUsersResponse(rsp *http.Response) (*GetUsersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2622,53 +3177,59 @@ func ParseGetVersionResponse(rsp *http.Response) (*GetVersionResponse, error) {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"kWI4FgGe4D6JaF//WAFvzjf/GwA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
