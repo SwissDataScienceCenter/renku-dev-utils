@@ -91,6 +91,27 @@ func (e BuildPlatform) Valid() bool {
 	}
 }
 
+// Defines values for DataConnectorAccessPolicyName.
+const (
+	DataConnectorAccessPolicyNameExcluded  DataConnectorAccessPolicyName = "excluded"
+	DataConnectorAccessPolicyNameReadOnly  DataConnectorAccessPolicyName = "read_only"
+	DataConnectorAccessPolicyNameReadWrite DataConnectorAccessPolicyName = "read_write"
+)
+
+// Valid indicates whether the value is a known member of the DataConnectorAccessPolicyName enum.
+func (e DataConnectorAccessPolicyName) Valid() bool {
+	switch e {
+	case DataConnectorAccessPolicyNameExcluded:
+		return true
+	case DataConnectorAccessPolicyNameReadOnly:
+		return true
+	case DataConnectorAccessPolicyNameReadWrite:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for EnvironmentImageSourceBuild.
 const (
 	EnvironmentImageSourceBuildBuild EnvironmentImageSourceBuild = "build"
@@ -154,6 +175,24 @@ func (e LauncherType) Valid() bool {
 	case Interactive:
 		return true
 	case NonInteractive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SecretAccessPolicyName.
+const (
+	SecretAccessPolicyNameExcluded SecretAccessPolicyName = "excluded"
+	SecretAccessPolicyNameIncluded SecretAccessPolicyName = "included"
+)
+
+// Valid indicates whether the value is a known member of the SecretAccessPolicyName enum.
+func (e SecretAccessPolicyName) Valid() bool {
+	switch e {
+	case SecretAccessPolicyNameExcluded:
+		return true
+	case SecretAccessPolicyNameIncluded:
 		return true
 	default:
 		return false
@@ -333,6 +372,21 @@ type ContainerImage = string
 
 // CreationDate The date and time the resource was created (in UTC and ISO-8601 format)
 type CreationDate = time.Time
+
+// DataConnectorAccessPolicy Data connector access policy config
+type DataConnectorAccessPolicy struct {
+	// Policy Data connector access policy name
+	Policy DataConnectorAccessPolicyName `json:"policy"`
+}
+
+// DataConnectorAccessPolicyName Data connector access policy name
+type DataConnectorAccessPolicyName string
+
+// DataConnectorKey Key identifying a data connector to a project relationship
+type DataConnectorKey struct {
+	// DataConnectorLinkId ULID identifier
+	DataConnectorLinkId Ulid `json:"data_connector_link_id"`
+}
 
 // DefaultUrl The default path to open in a session
 type DefaultUrl = string
@@ -808,6 +862,9 @@ type IsArchived = bool
 // IsArchivedPatch Whether this environment is archived and not for use in new projects or not
 type IsArchivedPatch = bool
 
+// IsRestricted Whether this session launcher access to its project resources are restricted or not.
+type IsRestricted = bool
+
 // LauncherType defines model for LauncherType.
 type LauncherType string
 
@@ -822,6 +879,21 @@ type RepositoryRevisionPatch = string
 
 // ResourceClassId The identifier of a resource class
 type ResourceClassId = int
+
+// SecretAccessPolicy Secret access policy config
+type SecretAccessPolicy struct {
+	// Policy Secret access policy name
+	Policy SecretAccessPolicyName `json:"policy"`
+}
+
+// SecretAccessPolicyName Secret access policy name
+type SecretAccessPolicyName string
+
+// SecretSlotKey Key identifying a secret slot within the project
+type SecretSlotKey struct {
+	// SecretSlotId ULID identifier
+	SecretSlotId Ulid `json:"secret_slot_id"`
+}
 
 // SessionLauncher A Renku 2.0 session definition and metadata
 type SessionLauncher struct {
@@ -839,8 +911,11 @@ type SessionLauncher struct {
 	Environment  EnvironmentGetInLauncher `json:"environment"`
 
 	// Id ULID identifier
-	Id           Ulid         `json:"id"`
-	LauncherType LauncherType `json:"launcher_type"`
+	Id Ulid `json:"id"`
+
+	// IsRestricted Whether this session launcher access to its project resources are restricted or not.
+	IsRestricted *IsRestricted `json:"is_restricted,omitempty"`
+	LauncherType LauncherType  `json:"launcher_type"`
 
 	// Name Renku session name
 	Name SessionName `json:"name"`
@@ -851,6 +926,21 @@ type SessionLauncher struct {
 	// ResourceClassId The identifier of a resource class
 	ResourceClassId *ResourceClassId `json:"resource_class_id"`
 }
+
+// SessionLauncherDataConnector defines model for SessionLauncherDataConnector.
+type SessionLauncherDataConnector struct {
+	// DataConnectorLinkId ULID identifier
+	DataConnectorLinkId Ulid `json:"data_connector_link_id"`
+
+	// Policy Data connector access policy name
+	Policy DataConnectorAccessPolicyName `json:"policy"`
+}
+
+// SessionLauncherDataConnectorList A list of data connector properties
+type SessionLauncherDataConnectorList = []SessionLauncherDataConnector
+
+// SessionLauncherDataConnectorPatchList A list of data connector property patches
+type SessionLauncherDataConnectorPatchList = []SessionLauncherDataConnector
 
 // SessionLauncherPatch Update a session launcher. For non-interactive launchers, a `command` is required.
 type SessionLauncherPatch struct {
@@ -901,6 +991,21 @@ type SessionLauncherPost struct {
 type SessionLauncherPost_Environment struct {
 	union json.RawMessage
 }
+
+// SessionLauncherSecret defines model for SessionLauncherSecret.
+type SessionLauncherSecret struct {
+	// Policy Secret access policy name
+	Policy SecretAccessPolicyName `json:"policy"`
+
+	// SecretSlotId ULID identifier
+	SecretSlotId Ulid `json:"secret_slot_id"`
+}
+
+// SessionLauncherSecretList A list of session launcher secrets
+type SessionLauncherSecretList = []SessionLauncherSecret
+
+// SessionLauncherSecretPatchList A list of session launcher secret patches
+type SessionLauncherSecretPatchList = []SessionLauncherSecret
 
 // SessionLaunchersList A list of Renku session launchers
 type SessionLaunchersList = []SessionLauncher
@@ -970,6 +1075,12 @@ type PostSessionLaunchersJSONRequestBody = SessionLauncherPost
 
 // PatchSessionLaunchersLauncherIdJSONRequestBody defines body for PatchSessionLaunchersLauncherId for application/json ContentType.
 type PatchSessionLaunchersLauncherIdJSONRequestBody = SessionLauncherPatch
+
+// PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody defines body for PatchSessionLaunchersLauncherIdDataConnectors for application/json ContentType.
+type PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody = SessionLauncherDataConnectorPatchList
+
+// PatchSessionLaunchersLauncherIdSecretsJSONRequestBody defines body for PatchSessionLaunchersLauncherIdSecrets for application/json ContentType.
+type PatchSessionLaunchersLauncherIdSecretsJSONRequestBody = SessionLauncherSecretPatchList
 
 // AsBuildNotCompletedPart returns the union data inside the Build as a BuildNotCompletedPart
 func (t Build) AsBuildNotCompletedPart() (BuildNotCompletedPart, error) {
@@ -1571,6 +1682,22 @@ type ClientInterface interface {
 	PatchSessionLaunchersLauncherIdWithBody(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchSessionLaunchersLauncherId(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSessionLaunchersLauncherIdDataConnectors request
+	GetSessionLaunchersLauncherIdDataConnectors(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchSessionLaunchersLauncherIdDataConnectorsWithBody request with any body
+	PatchSessionLaunchersLauncherIdDataConnectorsWithBody(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchSessionLaunchersLauncherIdDataConnectors(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSessionLaunchersLauncherIdSecrets request
+	GetSessionLaunchersLauncherIdSecrets(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchSessionLaunchersLauncherIdSecretsWithBody request with any body
+	PatchSessionLaunchersLauncherIdSecretsWithBody(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchSessionLaunchersLauncherIdSecrets(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdSecretsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetBuildsBuildId(ctx context.Context, buildId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1815,6 +1942,78 @@ func (c *Client) PatchSessionLaunchersLauncherIdWithBody(ctx context.Context, la
 
 func (c *Client) PatchSessionLaunchersLauncherId(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPatchSessionLaunchersLauncherIdRequest(c.Server, launcherId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSessionLaunchersLauncherIdDataConnectors(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionLaunchersLauncherIdDataConnectorsRequest(c.Server, launcherId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchSessionLaunchersLauncherIdDataConnectorsWithBody(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchSessionLaunchersLauncherIdDataConnectorsRequestWithBody(c.Server, launcherId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchSessionLaunchersLauncherIdDataConnectors(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchSessionLaunchersLauncherIdDataConnectorsRequest(c.Server, launcherId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSessionLaunchersLauncherIdSecrets(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionLaunchersLauncherIdSecretsRequest(c.Server, launcherId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchSessionLaunchersLauncherIdSecretsWithBody(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchSessionLaunchersLauncherIdSecretsRequestWithBody(c.Server, launcherId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchSessionLaunchersLauncherIdSecrets(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdSecretsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchSessionLaunchersLauncherIdSecretsRequest(c.Server, launcherId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2460,6 +2659,168 @@ func NewPatchSessionLaunchersLauncherIdRequestWithBody(server string, launcherId
 	return req, nil
 }
 
+// NewGetSessionLaunchersLauncherIdDataConnectorsRequest generates requests for GetSessionLaunchersLauncherIdDataConnectors
+func NewGetSessionLaunchersLauncherIdDataConnectorsRequest(server string, launcherId Ulid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "launcher_id", launcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/session_launchers/%s/data_connectors", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPatchSessionLaunchersLauncherIdDataConnectorsRequest calls the generic PatchSessionLaunchersLauncherIdDataConnectors builder with application/json body
+func NewPatchSessionLaunchersLauncherIdDataConnectorsRequest(server string, launcherId Ulid, body PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchSessionLaunchersLauncherIdDataConnectorsRequestWithBody(server, launcherId, "application/json", bodyReader)
+}
+
+// NewPatchSessionLaunchersLauncherIdDataConnectorsRequestWithBody generates requests for PatchSessionLaunchersLauncherIdDataConnectors with any type of body
+func NewPatchSessionLaunchersLauncherIdDataConnectorsRequestWithBody(server string, launcherId Ulid, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "launcher_id", launcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/session_launchers/%s/data_connectors", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetSessionLaunchersLauncherIdSecretsRequest generates requests for GetSessionLaunchersLauncherIdSecrets
+func NewGetSessionLaunchersLauncherIdSecretsRequest(server string, launcherId Ulid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "launcher_id", launcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/session_launchers/%s/secrets", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPatchSessionLaunchersLauncherIdSecretsRequest calls the generic PatchSessionLaunchersLauncherIdSecrets builder with application/json body
+func NewPatchSessionLaunchersLauncherIdSecretsRequest(server string, launcherId Ulid, body PatchSessionLaunchersLauncherIdSecretsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchSessionLaunchersLauncherIdSecretsRequestWithBody(server, launcherId, "application/json", bodyReader)
+}
+
+// NewPatchSessionLaunchersLauncherIdSecretsRequestWithBody generates requests for PatchSessionLaunchersLauncherIdSecrets with any type of body
+func NewPatchSessionLaunchersLauncherIdSecretsRequestWithBody(server string, launcherId Ulid, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "launcher_id", launcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/session_launchers/%s/secrets", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2560,6 +2921,22 @@ type ClientWithResponsesInterface interface {
 	PatchSessionLaunchersLauncherIdWithBodyWithResponse(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdResponse, error)
 
 	PatchSessionLaunchersLauncherIdWithResponse(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdResponse, error)
+
+	// GetSessionLaunchersLauncherIdDataConnectorsWithResponse request
+	GetSessionLaunchersLauncherIdDataConnectorsWithResponse(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*GetSessionLaunchersLauncherIdDataConnectorsResponse, error)
+
+	// PatchSessionLaunchersLauncherIdDataConnectorsWithBodyWithResponse request with any body
+	PatchSessionLaunchersLauncherIdDataConnectorsWithBodyWithResponse(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdDataConnectorsResponse, error)
+
+	PatchSessionLaunchersLauncherIdDataConnectorsWithResponse(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdDataConnectorsResponse, error)
+
+	// GetSessionLaunchersLauncherIdSecretsWithResponse request
+	GetSessionLaunchersLauncherIdSecretsWithResponse(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*GetSessionLaunchersLauncherIdSecretsResponse, error)
+
+	// PatchSessionLaunchersLauncherIdSecretsWithBodyWithResponse request with any body
+	PatchSessionLaunchersLauncherIdSecretsWithBodyWithResponse(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdSecretsResponse, error)
+
+	PatchSessionLaunchersLauncherIdSecretsWithResponse(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdSecretsJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdSecretsResponse, error)
 }
 
 type GetBuildsBuildIdResponse struct {
@@ -3060,6 +3437,134 @@ func (r PatchSessionLaunchersLauncherIdResponse) ContentType() string {
 	return ""
 }
 
+type GetSessionLaunchersLauncherIdDataConnectorsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionLauncherDataConnectorList
+	JSON404      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSessionLaunchersLauncherIdDataConnectorsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSessionLaunchersLauncherIdDataConnectorsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetSessionLaunchersLauncherIdDataConnectorsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PatchSessionLaunchersLauncherIdDataConnectorsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionLauncherDataConnectorList
+	JSON404      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchSessionLaunchersLauncherIdDataConnectorsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchSessionLaunchersLauncherIdDataConnectorsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchSessionLaunchersLauncherIdDataConnectorsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetSessionLaunchersLauncherIdSecretsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionLauncherSecretList
+	JSON404      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSessionLaunchersLauncherIdSecretsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSessionLaunchersLauncherIdSecretsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetSessionLaunchersLauncherIdSecretsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PatchSessionLaunchersLauncherIdSecretsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionLauncherSecretList
+	JSON404      *ErrorResponse
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchSessionLaunchersLauncherIdSecretsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchSessionLaunchersLauncherIdSecretsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchSessionLaunchersLauncherIdSecretsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // GetBuildsBuildIdWithResponse request returning *GetBuildsBuildIdResponse
 func (c *ClientWithResponses) GetBuildsBuildIdWithResponse(ctx context.Context, buildId Ulid, reqEditors ...RequestEditorFn) (*GetBuildsBuildIdResponse, error) {
 	rsp, err := c.GetBuildsBuildId(ctx, buildId, reqEditors...)
@@ -3242,6 +3747,58 @@ func (c *ClientWithResponses) PatchSessionLaunchersLauncherIdWithResponse(ctx co
 		return nil, err
 	}
 	return ParsePatchSessionLaunchersLauncherIdResponse(rsp)
+}
+
+// GetSessionLaunchersLauncherIdDataConnectorsWithResponse request returning *GetSessionLaunchersLauncherIdDataConnectorsResponse
+func (c *ClientWithResponses) GetSessionLaunchersLauncherIdDataConnectorsWithResponse(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*GetSessionLaunchersLauncherIdDataConnectorsResponse, error) {
+	rsp, err := c.GetSessionLaunchersLauncherIdDataConnectors(ctx, launcherId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionLaunchersLauncherIdDataConnectorsResponse(rsp)
+}
+
+// PatchSessionLaunchersLauncherIdDataConnectorsWithBodyWithResponse request with arbitrary body returning *PatchSessionLaunchersLauncherIdDataConnectorsResponse
+func (c *ClientWithResponses) PatchSessionLaunchersLauncherIdDataConnectorsWithBodyWithResponse(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdDataConnectorsResponse, error) {
+	rsp, err := c.PatchSessionLaunchersLauncherIdDataConnectorsWithBody(ctx, launcherId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchSessionLaunchersLauncherIdDataConnectorsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchSessionLaunchersLauncherIdDataConnectorsWithResponse(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdDataConnectorsJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdDataConnectorsResponse, error) {
+	rsp, err := c.PatchSessionLaunchersLauncherIdDataConnectors(ctx, launcherId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchSessionLaunchersLauncherIdDataConnectorsResponse(rsp)
+}
+
+// GetSessionLaunchersLauncherIdSecretsWithResponse request returning *GetSessionLaunchersLauncherIdSecretsResponse
+func (c *ClientWithResponses) GetSessionLaunchersLauncherIdSecretsWithResponse(ctx context.Context, launcherId Ulid, reqEditors ...RequestEditorFn) (*GetSessionLaunchersLauncherIdSecretsResponse, error) {
+	rsp, err := c.GetSessionLaunchersLauncherIdSecrets(ctx, launcherId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionLaunchersLauncherIdSecretsResponse(rsp)
+}
+
+// PatchSessionLaunchersLauncherIdSecretsWithBodyWithResponse request with arbitrary body returning *PatchSessionLaunchersLauncherIdSecretsResponse
+func (c *ClientWithResponses) PatchSessionLaunchersLauncherIdSecretsWithBodyWithResponse(ctx context.Context, launcherId Ulid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdSecretsResponse, error) {
+	rsp, err := c.PatchSessionLaunchersLauncherIdSecretsWithBody(ctx, launcherId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchSessionLaunchersLauncherIdSecretsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchSessionLaunchersLauncherIdSecretsWithResponse(ctx context.Context, launcherId Ulid, body PatchSessionLaunchersLauncherIdSecretsJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSessionLaunchersLauncherIdSecretsResponse, error) {
+	rsp, err := c.PatchSessionLaunchersLauncherIdSecrets(ctx, launcherId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchSessionLaunchersLauncherIdSecretsResponse(rsp)
 }
 
 // ParseGetBuildsBuildIdResponse parses an HTTP response from a GetBuildsBuildIdWithResponse call
@@ -3786,88 +4343,257 @@ func ParsePatchSessionLaunchersLauncherIdResponse(rsp *http.Response) (*PatchSes
 	return response, nil
 }
 
+// ParseGetSessionLaunchersLauncherIdDataConnectorsResponse parses an HTTP response from a GetSessionLaunchersLauncherIdDataConnectorsWithResponse call
+func ParseGetSessionLaunchersLauncherIdDataConnectorsResponse(rsp *http.Response) (*GetSessionLaunchersLauncherIdDataConnectorsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSessionLaunchersLauncherIdDataConnectorsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionLauncherDataConnectorList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchSessionLaunchersLauncherIdDataConnectorsResponse parses an HTTP response from a PatchSessionLaunchersLauncherIdDataConnectorsWithResponse call
+func ParsePatchSessionLaunchersLauncherIdDataConnectorsResponse(rsp *http.Response) (*PatchSessionLaunchersLauncherIdDataConnectorsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchSessionLaunchersLauncherIdDataConnectorsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionLauncherDataConnectorList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSessionLaunchersLauncherIdSecretsResponse parses an HTTP response from a GetSessionLaunchersLauncherIdSecretsWithResponse call
+func ParseGetSessionLaunchersLauncherIdSecretsResponse(rsp *http.Response) (*GetSessionLaunchersLauncherIdSecretsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSessionLaunchersLauncherIdSecretsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionLauncherSecretList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchSessionLaunchersLauncherIdSecretsResponse parses an HTTP response from a PatchSessionLaunchersLauncherIdSecretsWithResponse call
+func ParsePatchSessionLaunchersLauncherIdSecretsResponse(rsp *http.Response) (*PatchSessionLaunchersLauncherIdSecretsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchSessionLaunchersLauncherIdSecretsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionLauncherSecretList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"oJuwjTjoh/G8bZwQ7cCqe4T/GQA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
